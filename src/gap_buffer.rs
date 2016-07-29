@@ -26,14 +26,22 @@ impl GapBuffer {
         self.buf.len() - self.gap.len()
     }
 
-    /// Returns the string slice before the gap.
-    pub fn before(&self) -> &str {
-        unsafe { str::from_utf8_unchecked(&self.buf[self.gap.before()]) }
+    /// Returns the two string slices before and after the gap.
+    pub fn as_strs(&self) -> (&str, &str) {
+        unsafe {
+            (
+                str::from_utf8_unchecked(&self.buf[self.gap.before()]),
+                str::from_utf8_unchecked(&self.buf[self.gap.after()]),
+            )
+        }
     }
 
-    /// Returns the string slice after the gap.
-    pub fn after(&self) -> &str {
-        unsafe { str::from_utf8_unchecked(&self.buf[self.gap.after()]) }
+    fn gap_start(&self) -> *const u8 {
+        unsafe { self.buf.as_ptr().offset(self.gap.start as isize) }
+    }
+
+    fn gap_end(&self) -> *const u8 {
+        unsafe { self.buf.as_ptr().offset(self.gap.end as isize) }
     }
 
     /// Moves the gap so that it starts at `index`.
@@ -47,11 +55,9 @@ impl GapBuffer {
             assert!(index <= self.len(), "gap index out of bounds");
 
             let move_len = index - self.gap.start;
-            let src = self.after().as_ptr();
-            unsafe {
-                let dest = self.buf.as_ptr().offset(self.gap.start as isize);
-                ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
-            }
+            let src = self.gap_end();
+            let dest = self.gap_start();
+            unsafe { ptr::copy_nonoverlapping(src, dest as *mut u8, move_len); }
 
             self.gap.start += move_len;
             self.gap.end += move_len;
@@ -60,7 +66,7 @@ impl GapBuffer {
             let move_len = self.gap.start - index;
             unsafe {
                 let src = self.buf.as_ptr().offset(index as isize);
-                let dest = self.after().as_ptr().offset(-(move_len as isize));
+                let dest = self.gap_end().offset(-(move_len as isize));
                 ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
             }
 
@@ -88,7 +94,7 @@ impl GapBuffer {
 
             // Move `after` to the end of the buffer.
             let after_len = old_len - self.gap.end;
-            let after_src = self.after().as_ptr();
+            let after_src = self.gap_end();
             unsafe {
                 let after_dest = after_src.offset(additional as isize);
                 ptr::copy(after_src, after_dest as *mut u8, after_len);
@@ -107,18 +113,20 @@ impl GapBuffer {
 
 impl Debug for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let (a, b) = self.as_strs();
         f.debug_tuple("GapBuffer")
-            .field(&self.before())
+            .field(&a)
             .field(&self.gap.len())
-            .field(&self.after())
+            .field(&b)
             .finish()
     }
 }
 
 impl Display for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        f.write_str(self.before())?;
-        f.write_str(self.after())
+        let (a, b) = self.as_strs();
+        f.write_str(a)?;
+        f.write_str(b)
     }
 }
 
