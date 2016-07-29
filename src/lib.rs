@@ -23,3 +23,4 @@
 )]
 
 pub mod copy_range;
+pub mod gap_buffer;
