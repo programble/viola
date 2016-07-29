@@ -30,6 +30,16 @@ impl Range {
 
     /// Shrinks the range to the specified length.
     pub fn shrink(self, len: usize) -> Self {
+        debug_assert!(len <= self.len());
+        Range {
+            start: self.start,
+            end: self.start + len,
+        }
+    }
+
+    /// Expands the range to the specified length.
+    pub fn expand(self, len: usize) -> Self {
+        debug_assert!(len >= self.len());
         Range {
             start: self.start,
             end: self.start + len,

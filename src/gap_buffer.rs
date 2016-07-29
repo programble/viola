@@ -1,6 +1,7 @@
 //! UTF-8 gap buffer.
 
 use std::fmt::{Debug, Display, Formatter, Error as FmtError};
+use std::ptr;
 use std::str;
 
 use copy_range::Range;
@@ -47,8 +48,31 @@ impl GapBuffer {
             let dest = &mut self.buf[self.gap.shrink(src.len())];
             dest.copy_from_slice(src.as_bytes());
             self.gap.start += src.len();
+
         } else {
-            unimplemented!()
+            // Allocate additional space for `src` and a new gap.
+            let additional = src.len() - self.gap.len() + GAP_LEN;
+            let old_len = self.buf.len();
+            let new_len = old_len + additional;
+
+            self.buf.reserve_exact(additional);
+            unsafe { self.buf.set_len(new_len); }
+
+            // Move `after` to the end of the buffer.
+            let after_len = old_len - self.gap.end;
+            let after_src = self.after().as_ptr();
+            unsafe {
+                let after_dest = after_src.offset(additional as isize);
+                ptr::copy(after_src, after_dest as *mut u8, after_len);
+            }
+
+            // Copy in `src`.
+            let dest = &mut self.buf[self.gap.expand(src.len())];
+            dest.copy_from_slice(src.as_bytes());
+
+            // Set gap to newly allocated gap.
+            self.gap.start += dest.len();
+            self.gap.end = new_len - after_len;
         }
     }
 }
