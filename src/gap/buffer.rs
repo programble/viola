@@ -1,3 +1,5 @@
+use std::ptr;
+
 use byte_range::ByteRange;
 
 /// Gap buffer using `Vec<u8>`.
@@ -63,7 +65,28 @@ impl GapBuffer {
             self.gap.start += src.len();
 
         } else {
-            unimplemented!()
+            // Allocate additional space for `src` and a new gap.
+            let old_len = self.buf.len();
+            let gap_len = (self.len() + src.len()) / 2;
+            let additional = src.len() - self.gap.len() + gap_len;
+            self.resize_buf(additional);
+
+            // Move data after gap to end of buffer.
+            unsafe {
+                ptr::copy(
+                    self.gap_end(),
+                    self.gap_end().offset(additional as isize) as *mut u8,
+                    old_len - self.gap.end
+                );
+            }
+
+            // Copy in bytes.
+            let dest = &mut self.buf[self.gap.resize_end(src.len())];
+            dest.copy_from_slice(src);
+
+            // Set newly allocated gap.
+            self.gap.start += src.len();
+            self.gap.end += additional;
         }
 
         self.gap.start
