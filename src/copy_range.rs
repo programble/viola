@@ -12,6 +12,18 @@ pub struct Range<Idx> {
     pub end: Idx,
 }
 
+impl<Idx: Copy> Range<Idx> {
+    /// Returns the range before this.
+    pub fn before(self) -> ops::RangeTo<Idx> {
+        ..(self.start)
+    }
+
+    /// Returns the range after this.
+    pub fn after(self) -> ops::RangeFrom<Idx> {
+        (self.end)..
+    }
+}
+
 impl<Idx> From<ops::Range<Idx>> for Range<Idx> {
     fn from(range: ops::Range<Idx>) -> Range<Idx> {
         Range {
