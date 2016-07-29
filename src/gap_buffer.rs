@@ -1,11 +1,11 @@
 //! UTF-8 gap buffer.
 
+use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::str;
 
 use copy_range::Range;
 
 /// UTF-8 gap buffer.
-#[derive(Debug)]
 pub struct GapBuffer {
     buf: Vec<u8>,
     gap: Range<usize>,
@@ -39,5 +39,22 @@ impl GapBuffer {
     /// Returns the string slice after the gap.
     pub fn after(&self) -> &str {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.after()]) }
+    }
+}
+
+impl Debug for GapBuffer {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        f.debug_tuple("GapBuffer")
+            .field(&self.before())
+            .field(&self.gap())
+            .field(&self.after())
+            .finish()
+    }
+}
+
+impl Display for GapBuffer {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        f.write_str(self.before())?;
+        f.write_str(self.after())
     }
 }

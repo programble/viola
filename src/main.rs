@@ -1,5 +1,9 @@
 extern crate viola;
 
+use viola::gap_buffer::GapBuffer;
+
 fn main() {
-    println!("Hello, world!");
+    let buf = GapBuffer::new();
+    println!("{}", buf);
+    println!("{:?}", buf);
 }
