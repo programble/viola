@@ -70,8 +70,14 @@ impl Display for GapBuffer {
     }
 }
 
+impl Default for GapBuffer {
+    fn default() -> Self {
+        GapBuffer::new()
+    }
+}
+
 impl<'a> From<&'a str> for GapBuffer {
-    fn from(src: &'a str) -> GapBuffer {
+    fn from(src: &'a str) -> Self {
         let mut buf = GapBuffer::new();
         buf.insert(src);
         buf
