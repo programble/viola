@@ -42,6 +42,29 @@ impl GapBuffer {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.after()]) }
     }
 
+    /// Moves the gap so that it starts at `index`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    pub fn move_gap(&mut self, index: usize) {
+        if index < self.gap.start {
+            let move_len = self.gap.start - index;
+            unsafe {
+                // FIXME: Are these casts to isize dangerous?
+                let src = self.buf.as_ptr().offset(index as isize);
+                let dest = self.after().as_ptr().offset(-(move_len as isize));
+                ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
+            }
+
+            self.gap.start -= move_len;
+            self.gap.end -= move_len;
+
+        } else if index > self.gap.start {
+            unimplemented!()
+        }
+    }
+
     /// Inserts text at the start of the gap.
     pub fn insert(&mut self, src: &str) {
         if src.len() < self.gap.len() {
