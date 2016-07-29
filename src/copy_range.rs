@@ -4,28 +4,33 @@ use std::ops::{self, Index, IndexMut};
 
 /// A (half-open) range which is bounded at both ends: { x | start <= x < end }.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Range<Idx> {
+pub struct Range {
     /// The lower bound of the range (inclusive).
-    pub start: Idx,
+    pub start: usize,
 
     /// The upper bound of the range (exclusive).
-    pub end: Idx,
+    pub end: usize,
 }
 
-impl<Idx: Copy> Range<Idx> {
+impl Range {
+    /// Returns the length of the range.
+    pub fn len(self) -> usize {
+        self.end - self.start
+    }
+
     /// Returns the range before this.
-    pub fn before(self) -> ops::RangeTo<Idx> {
+    pub fn before(self) -> ops::RangeTo<usize> {
         ..(self.start)
     }
 
     /// Returns the range after this.
-    pub fn after(self) -> ops::RangeFrom<Idx> {
+    pub fn after(self) -> ops::RangeFrom<usize> {
         (self.end)..
     }
 }
 
-impl<Idx> From<ops::Range<Idx>> for Range<Idx> {
-    fn from(range: ops::Range<Idx>) -> Range<Idx> {
+impl From<ops::Range<usize>> for Range {
+    fn from(range: ops::Range<usize>) -> Range {
         Range {
             start: range.start,
             end: range.end,
@@ -33,22 +38,22 @@ impl<Idx> From<ops::Range<Idx>> for Range<Idx> {
     }
 }
 
-impl<Idx> Into<ops::Range<Idx>> for Range<Idx> {
-    fn into(self) -> ops::Range<Idx> {
+impl Into<ops::Range<usize>> for Range {
+    fn into(self) -> ops::Range<usize> {
         (self.start)..(self.end)
     }
 }
 
-impl Index<Range<usize>> for Vec<u8> {
+impl Index<Range> for Vec<u8> {
     type Output = [u8];
 
-    fn index(&self, index: Range<usize>) -> &[u8] {
+    fn index(&self, index: Range) -> &[u8] {
         &self[index.into(): ops::Range<usize>]
     }
 }
 
-impl IndexMut<Range<usize>> for Vec<u8> {
-    fn index_mut(&mut self, index: Range<usize>) -> &mut [u8] {
+impl IndexMut<Range> for Vec<u8> {
+    fn index_mut(&mut self, index: Range) -> &mut [u8] {
         &mut self[index.into(): ops::Range<usize>]
     }
 }

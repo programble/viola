@@ -8,7 +8,7 @@ use copy_range::Range;
 /// UTF-8 gap buffer.
 pub struct GapBuffer {
     buf: Vec<u8>,
-    gap: Range<usize>,
+    gap: Range,
 }
 
 const GAP_LEN: usize = 128; // TODO: Determine.
