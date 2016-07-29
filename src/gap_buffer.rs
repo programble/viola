@@ -67,7 +67,6 @@ impl GapBuffer {
         } else if index < self.gap.start {
             let move_len = self.gap.start - index;
             unsafe {
-                // FIXME: Are these casts to isize dangerous?
                 let src = self.buf.as_ptr().offset(index as isize);
                 let dest = self.after().as_ptr().offset(-(move_len as isize));
                 ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
