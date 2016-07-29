@@ -13,5 +13,6 @@ fn main() {
     println!("{:?}", buf);
     buf.insert("bye");
     println!("{:?}", buf);
-    println!("{}", buf);
+    buf.move_gap(13);
+    println!("{:?}", buf);
 }

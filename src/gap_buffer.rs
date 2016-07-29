@@ -61,7 +61,17 @@ impl GapBuffer {
             self.gap.end -= move_len;
 
         } else if index > self.gap.start {
-            unimplemented!()
+            assert!(index <= self.buf.len(), "gap index out of bounds");
+
+            let move_len = index - self.gap.start;
+            unsafe {
+                let src = self.after().as_ptr();
+                let dest = self.gap().as_ptr();
+                ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
+            }
+
+            self.gap.start += move_len;
+            self.gap.end += move_len;
         }
     }
 
