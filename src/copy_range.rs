@@ -27,6 +27,14 @@ impl Range {
     pub fn after(self) -> ops::RangeFrom<usize> {
         (self.end)..
     }
+
+    /// Shrinks the range to the specified length.
+    pub fn shrink(self, len: usize) -> Self {
+        Range {
+            start: self.start,
+            end: self.start + len,
+        }
+    }
 }
 
 impl From<ops::Range<usize>> for Range {

@@ -40,6 +40,17 @@ impl GapBuffer {
     pub fn after(&self) -> &str {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.after()]) }
     }
+
+    /// Inserts text at the start of the gap.
+    pub fn insert(&mut self, src: &str) {
+        if src.len() < self.gap.len() {
+            let dest = &mut self.buf[self.gap.shrink(src.len())];
+            dest.copy_from_slice(src.as_bytes());
+            self.gap.start += src.len();
+        } else {
+            unimplemented!()
+        }
+    }
 }
 
 impl Debug for GapBuffer {
@@ -56,5 +67,13 @@ impl Display for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         f.write_str(self.before())?;
         f.write_str(self.after())
+    }
+}
+
+impl<'a> From<&'a str> for GapBuffer {
+    fn from(src: &'a str) -> GapBuffer {
+        let mut buf = GapBuffer::new();
+        buf.insert(src);
+        buf
     }
 }
