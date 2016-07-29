@@ -53,6 +53,7 @@ impl GapBuffer {
     ///
     /// Panics if `index` is out of bounds.
     pub fn move_gap(&mut self, index: usize) {
+        // TODO: Panic if index is not a char boundary.
         if index > self.gap.start {
             assert!(index <= self.len(), "gap index out of bounds");
 
