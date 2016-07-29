@@ -43,4 +43,29 @@ impl GapBuffer {
         self.buf.reserve_exact(additional);
         unsafe { self.buf.set_len(new_len); }
     }
+
+    fn gap_start(&self) -> *const u8 {
+        unsafe { self.buf.as_ptr().offset(self.gap.start as isize) }
+    }
+
+    fn gap_end(&self) -> *const u8 {
+        unsafe { self.buf.as_ptr().offset(self.gap.end as isize) }
+    }
+
+    /// Inserts bytes at the start of the gap. If the bytes cannot fit in the current gap, a new
+    /// one is allocated of half the total size of the buffer.
+    ///
+    /// Returns the new index of the start of the gap.
+    pub fn insert(&mut self, src: &[u8]) -> usize {
+        if src.len() < self.gap.len() {
+            let dest = &mut self.buf[self.gap.resize_end(src.len())];
+            dest.copy_from_slice(src);
+            self.gap.start += src.len();
+
+        } else {
+            unimplemented!()
+        }
+
+        self.gap.start
+    }
 }
