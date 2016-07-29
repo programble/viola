@@ -12,18 +12,12 @@ pub struct GapBuffer {
     gap: Range,
 }
 
-const GAP_LEN: usize = 128; // TODO: Determine.
-
 impl GapBuffer {
     /// Creates an empty gap buffer.
     pub fn new() -> Self {
-        let mut buf = Vec::new();
-        buf.reserve_exact(GAP_LEN);
-        unsafe { buf.set_len(GAP_LEN); }
-
         GapBuffer {
-            buf: buf,
-            gap: Range::from(0..GAP_LEN),
+            buf: Vec::new(),
+            gap: Range::from(0..0),
         }
     }
 
@@ -87,10 +81,12 @@ impl GapBuffer {
 
         } else {
             // Allocate additional space for `src` and a new gap.
-            let additional = src.len() - self.gap.len() + GAP_LEN;
             let old_len = self.buf.len();
+            let gap_len = (old_len + src.len()) / 2;
+            let additional = src.len() - self.gap.len() + gap_len;
             let new_len = old_len + additional;
 
+            // TODO: Make sure this isn't UB for some reason.
             self.buf.reserve_exact(additional);
             unsafe { self.buf.set_len(new_len); }
 
