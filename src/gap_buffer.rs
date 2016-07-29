@@ -31,11 +31,6 @@ impl GapBuffer {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.before()]) }
     }
 
-    /// Returns the byte slice of the gap.
-    pub fn gap(&self) -> &[u8] {
-        &self.buf[self.gap]
-    }
-
     /// Returns the string slice after the gap.
     pub fn after(&self) -> &str {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.after()]) }
@@ -53,8 +48,10 @@ impl GapBuffer {
 
             let move_len = index - self.gap.start;
             let src = self.after().as_ptr();
-            let dest = self.gap().as_ptr();
-            unsafe { ptr::copy_nonoverlapping(src, dest as *mut u8, move_len); }
+            unsafe {
+                let dest = self.buf.as_ptr().offset(self.gap.start as isize);
+                ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
+            }
 
             self.gap.start += move_len;
             self.gap.end += move_len;
@@ -86,7 +83,6 @@ impl GapBuffer {
             let additional = src.len() - self.gap.len() + gap_len;
             let new_len = old_len + additional;
 
-            // TODO: Make sure this isn't UB for some reason.
             self.buf.reserve_exact(additional);
             unsafe { self.buf.set_len(new_len); }
 
@@ -113,7 +109,7 @@ impl Debug for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         f.debug_tuple("GapBuffer")
             .field(&self.before())
-            .field(&self.gap())
+            .field(&self.gap.len())
             .field(&self.after())
             .finish()
     }
