@@ -14,6 +14,8 @@ Vi-like editor.
 
 [docs]: https://cmcenroe.me/viola/viola
 
+![Viola](http://i.imgur.com/uBwWw9c.png)
+
 ## License
 
 Copyright © 2016, Curtis McEnroe <curtis@cmcenroe.me>
