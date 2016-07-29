@@ -27,6 +27,22 @@ impl ByteRange {
     pub fn after(self) -> RangeFrom<usize> {
         (self.end)..
     }
+
+    /// Returns a range of length `len` with the same `start`.
+    pub fn resize_end(self, len: usize) -> Self {
+        ByteRange {
+            start: self.start,
+            end: self.start + len,
+        }
+    }
+
+    /// Returns a range of length `len` with the same `end`.
+    pub fn resize_start(self, len: usize) -> Self {
+        ByteRange {
+            start: self.end - len,
+            end: self.end,
+        }
+    }
 }
 
 impl From<Range<usize>> for ByteRange {
