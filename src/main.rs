@@ -15,4 +15,7 @@ fn main() {
     println!("{:?}", buf);
     buf.move_gap(13);
     println!("{:?}", buf);
+    let len = buf.len();
+    buf.move_gap(len);
+    println!("{:?}", buf);
 }

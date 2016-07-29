@@ -27,6 +27,11 @@ impl GapBuffer {
         }
     }
 
+    /// Returns the length of the string.
+    pub fn len(&self) -> usize {
+        self.buf.len() - self.gap.len()
+    }
+
     /// Returns the string slice before the gap.
     pub fn before(&self) -> &str {
         unsafe { str::from_utf8_unchecked(&self.buf[self.gap.before()]) }
@@ -48,7 +53,18 @@ impl GapBuffer {
     ///
     /// Panics if `index` is out of bounds.
     pub fn move_gap(&mut self, index: usize) {
-        if index < self.gap.start {
+        if index > self.gap.start {
+            assert!(index <= self.len(), "gap index out of bounds");
+
+            let move_len = index - self.gap.start;
+            let src = self.after().as_ptr();
+            let dest = self.gap().as_ptr();
+            unsafe { ptr::copy_nonoverlapping(src, dest as *mut u8, move_len); }
+
+            self.gap.start += move_len;
+            self.gap.end += move_len;
+
+        } else if index < self.gap.start {
             let move_len = self.gap.start - index;
             unsafe {
                 // FIXME: Are these casts to isize dangerous?
@@ -59,19 +75,6 @@ impl GapBuffer {
 
             self.gap.start -= move_len;
             self.gap.end -= move_len;
-
-        } else if index > self.gap.start {
-            assert!(index <= self.buf.len(), "gap index out of bounds");
-
-            let move_len = index - self.gap.start;
-            unsafe {
-                let src = self.after().as_ptr();
-                let dest = self.gap().as_ptr();
-                ptr::copy_nonoverlapping(src, dest as *mut u8, move_len);
-            }
-
-            self.gap.start += move_len;
-            self.gap.end += move_len;
         }
     }
 
