@@ -62,6 +62,20 @@ impl GapString {
     }
 }
 
+/// Uses the extra capacity as the gap.
+impl From<String> for GapString {
+    fn from(string: String) -> Self {
+        GapString { buf: GapBuffer::from(string.into_bytes()) }
+    }
+}
+
+/// Moves the gap to the end as extra capacity.
+impl Into<String> for GapString {
+    fn into(self) -> String {
+        unsafe { String::from_utf8_unchecked(self.buf.into()) }
+    }
+}
+
 struct Gap(usize);
 
 impl Debug for Gap {
