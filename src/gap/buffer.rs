@@ -163,8 +163,7 @@ impl<'a> From<&'a [u8]> for GapBuffer {
 
 impl GapBuffer {
     // Used by the GapString Debug implementation.
-    #[doc(hidden)]
-    pub fn gap_len(&self) -> usize {
+    pub(super) fn gap_len(&self) -> usize {
         self.gap.len()
     }
 }
