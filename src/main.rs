@@ -1,20 +1,19 @@
 extern crate viola;
 
-use viola::byte_range::ByteRange;
 use viola::gap::GapString;
 
 fn main() {
     let mut buf = GapString::new();
     println!("{:?}", buf);
-    buf.splice(ByteRange::from(0..0), "Good, ");
+    buf.splice(0..0, "Good, ");
     println!("{:?}", buf);
-    buf.splice(ByteRange::from(6..6), "world!");
+    buf.splice(6..6, "world!");
     println!("{:?}", buf);
-    buf.splice(ByteRange::from(4..4), "bye");
+    buf.splice(4..4, "bye");
     println!("{:?}", buf);
-    buf.splice(ByteRange::from(0..7), "hello");
+    buf.splice(0..7, "hello");
     println!("{:?}", buf);
-    buf.splice(ByteRange::from(0..1), "H");
+    buf.splice(0..1, "H");
     println!("{:?}", buf);
 
     println!("{}", buf);

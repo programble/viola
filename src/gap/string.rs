@@ -1,6 +1,5 @@
+use std::ops::Range;
 use std::str;
-
-use byte_range::ByteRange;
 
 use super::{GapBuffer, GapString};
 
@@ -36,7 +35,7 @@ impl GapString {
     ///
     /// - Panics if `dest` is out of bounds.
     /// - Panics if `dest` is not on char boundaries.
-    pub fn splice(&mut self, dest: ByteRange, src: &str) -> ByteRange {
+    pub fn splice(&mut self, dest: Range<usize>, src: &str) -> Range<usize> {
         {
             // TODO: Refactor.
             let (a, b) = self.as_strs();

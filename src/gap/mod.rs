@@ -1,11 +1,11 @@
 //! Gap buffers.
 
-use byte_range::ByteRange;
+use std::ops::Range;
 
 /// Gap buffer.
 pub struct GapBuffer {
     buf: Vec<u8>,
-    gap: ByteRange,
+    gap: Range<usize>,
 }
 
 /// Gap buffer string.

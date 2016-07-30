@@ -1,6 +1,7 @@
+use std::ops::Range;
 use std::ptr;
 
-use byte_range::ByteRange;
+use range_ext::RangeExt;
 
 use super::GapBuffer;
 
@@ -9,7 +10,7 @@ impl GapBuffer {
     pub fn new() -> Self {
         GapBuffer {
             buf: Vec::new(),
-            gap: ByteRange::from(0..0),
+            gap: 0..0,
         }
     }
 
@@ -17,7 +18,7 @@ impl GapBuffer {
     pub fn with_gap(len: usize) -> Self {
         let mut buffer = GapBuffer::new();
         buffer.resize_buf(len);
-        buffer.gap.end = len;
+        buffer.gap = 0..len;
         buffer
     }
 
@@ -100,7 +101,7 @@ impl GapBuffer {
     /// # Panics
     ///
     /// Panics if `dest` is out of bounds.
-    pub fn splice(&mut self, dest: ByteRange, src: &[u8]) -> ByteRange {
+    pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
         if dest.start > self.gap.start {
             assert!(dest.start <= self.len(), "dest start out of bounds");
             self.move_gap_up(dest.start);

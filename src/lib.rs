@@ -22,5 +22,5 @@
     type_ascription,
 )]
 
-pub mod byte_range;
 pub mod gap;
+pub mod range_ext;
