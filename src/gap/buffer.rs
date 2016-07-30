@@ -2,11 +2,7 @@ use std::ptr;
 
 use byte_range::ByteRange;
 
-/// Gap buffer using `Vec<u8>`.
-pub struct GapBuffer {
-    buf: Vec<u8>,
-    gap: ByteRange,
-}
+use super::GapBuffer;
 
 impl GapBuffer {
     /// Creates an empty gap buffer without allocating.

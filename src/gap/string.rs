@@ -2,12 +2,7 @@ use std::str;
 
 use byte_range::ByteRange;
 
-use super::buffer::GapBuffer;
-
-/// Gap buffer UTF-8 string.
-pub struct GapString {
-    buf: GapBuffer,
-}
+use super::{GapBuffer, GapString};
 
 impl GapString {
     /// Creates a new empty string without allocating.

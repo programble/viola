@@ -1,7 +1,6 @@
 use std::fmt::{Debug, Display, Formatter, Error};
 
-use super::buffer::GapBuffer;
-use super::string::GapString;
+use super::{GapBuffer, GapString};
 
 struct Gap(usize);
 

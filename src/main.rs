@@ -12,7 +12,9 @@ fn main() {
     println!("{:?}", buf);
     buf.replace(ByteRange::from(4..4), "bye");
     println!("{:?}", buf);
-    buf.replace(ByteRange::from(0..7), "Hello");
+    buf.replace(ByteRange::from(0..7), "hello");
+    println!("{:?}", buf);
+    buf.replace(ByteRange::from(0..1), "H");
     println!("{:?}", buf);
 
     println!("{}", buf);
