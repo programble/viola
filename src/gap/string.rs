@@ -36,7 +36,7 @@ impl GapString {
     ///
     /// - Panics if `dest` is out of bounds.
     /// - Panics if `dest` is not on char boundaries.
-    pub fn replace(&mut self, dest: ByteRange, src: &str) -> ByteRange {
+    pub fn splice(&mut self, dest: ByteRange, src: &str) -> ByteRange {
         {
             // TODO: Refactor.
             let (a, b) = self.as_strs();
@@ -53,6 +53,6 @@ impl GapString {
             assert!(start, "dest start not char boundary");
             assert!(end, "dest end not char boundary");
         }
-        self.buf.replace(dest, src.as_bytes())
+        self.buf.splice(dest, src.as_bytes())
     }
 }

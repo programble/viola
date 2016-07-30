@@ -100,7 +100,7 @@ impl GapBuffer {
     /// # Panics
     ///
     /// Panics if `dest` is out of bounds.
-    pub fn replace(&mut self, dest: ByteRange, src: &[u8]) -> ByteRange {
+    pub fn splice(&mut self, dest: ByteRange, src: &[u8]) -> ByteRange {
         if dest.start > self.gap.start {
             assert!(dest.start <= self.len(), "dest start out of bounds");
             self.move_gap_up(dest.start);
