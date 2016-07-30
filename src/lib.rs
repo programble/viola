@@ -24,6 +24,3 @@
 
 pub mod byte_range;
 pub mod gap;
-
-pub mod copy_range;
-pub mod gap_buffer;
