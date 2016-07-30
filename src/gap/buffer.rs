@@ -123,3 +123,27 @@ impl GapBuffer {
         self.gap.start += src.len();
     }
 }
+
+/// Uses the extra capacity as the gap.
+impl From<Vec<u8>> for GapBuffer {
+    fn from(mut buf: Vec<u8>) -> Self {
+        let len = buf.len();
+        let cap = buf.capacity();
+        unsafe { buf.set_len(cap); }
+        GapBuffer {
+            buf: buf,
+            gap: len..cap,
+        }
+    }
+}
+
+/// Moves the gap to the end as extra capacity.
+impl Into<Vec<u8>> for GapBuffer {
+    fn into(mut self) -> Vec<u8> {
+        let len = self.len();
+        self.move_gap_up(len);
+        let mut buf = self.buf;
+        unsafe { buf.set_len(len); }
+        buf
+    }
+}
