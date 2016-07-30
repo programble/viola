@@ -15,7 +15,7 @@ impl Debug for GapBuffer {
         let (a, b) = self.as_slices();
         f.debug_list()
             .entries(a)
-            .entry(&Gap(self.gap_len()))
+            .entry(&Gap(self.gap.len()))
             .entries(b)
             .finish()
     }
@@ -26,7 +26,7 @@ impl Debug for GapString {
         let (a, b) = self.as_strs();
         f.debug_tuple("")
             .field(&a)
-            .field(&Gap(self.gap_len()))
+            .field(&Gap(self.buf.gap.len()))
             .field(&b)
             .finish()
     }

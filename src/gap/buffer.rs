@@ -26,11 +26,6 @@ impl GapBuffer {
         self.buf.len() - self.gap.len()
     }
 
-    /// Returns the length of the gap.
-    pub fn gap_len(&self) -> usize {
-        self.gap.len()
-    }
-
     /// Returns the two byte slices before and after the gap.
     pub fn as_slices(&self) -> (&[u8], &[u8]) {
         (&self.buf[self.gap.before()], &self.buf[self.gap.after()])

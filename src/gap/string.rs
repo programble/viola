@@ -20,11 +20,6 @@ impl GapString {
         self.buf.len()
     }
 
-    /// Returns the length of the gap.
-    pub fn gap_len(&self) -> usize {
-        self.buf.gap_len()
-    }
-
     /// Returns the two string slices before and after the gap.
     pub fn as_strs(&self) -> (&str, &str) {
         let (a, b) = self.buf.as_slices();
