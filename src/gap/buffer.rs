@@ -32,6 +32,32 @@ impl GapBuffer {
         (&self.buf[self.gap.before()], &self.buf[self.gap.after()])
     }
 
+    /// Replaces the bytes at `dest` with the bytes in `src`.
+    ///
+    /// Returns the range of the written bytes.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `dest` is out of bounds.
+    pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
+        if dest.start > self.gap.start {
+            assert!(dest.start <= self.len(), "dest start out of bounds");
+            self.move_gap_up(dest.start);
+        } else if dest.start < self.gap.start {
+            self.move_gap_down(dest.start);
+        }
+
+        assert!(self.gap.end + dest.len() <= self.buf.len(), "dest end out of bounds");
+        self.gap.end += dest.len();
+
+        if src.len() >= self.gap.len() {
+            self.resize_to_fit(src.len());
+        }
+        self.copy_into_gap(src);
+
+        dest.resize_end(src.len())
+    }
+
     fn resize_buf(&mut self, additional: usize) {
         let new_len = self.buf.len() + additional;
         self.buf.reserve_exact(additional);
@@ -92,31 +118,5 @@ impl GapBuffer {
         let dest = &mut self.buf[self.gap.resize_end(src.len())];
         dest.copy_from_slice(src);
         self.gap.start += src.len();
-    }
-
-    /// Replaces the bytes at `dest` with the bytes in `src`.
-    ///
-    /// Returns the range of the written bytes.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `dest` is out of bounds.
-    pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
-        if dest.start > self.gap.start {
-            assert!(dest.start <= self.len(), "dest start out of bounds");
-            self.move_gap_up(dest.start);
-        } else if dest.start < self.gap.start {
-            self.move_gap_down(dest.start);
-        }
-
-        assert!(self.gap.end + dest.len() <= self.buf.len(), "dest end out of bounds");
-        self.gap.end += dest.len();
-
-        if src.len() >= self.gap.len() {
-            self.resize_to_fit(src.len());
-        }
-        self.copy_into_gap(src);
-
-        dest.resize_end(src.len())
     }
 }
