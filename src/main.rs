@@ -1,20 +1,19 @@
 extern crate viola;
 
-use viola::gap::GapBuffer;
+use viola::byte_range::ByteRange;
+use viola::gap::GapString;
 
 fn main() {
-    let mut buf = GapBuffer::new();
+    let mut buf = GapString::new();
     println!("{:?}", buf);
-    buf.replace((0..0).into(), &[2]);
+    buf.replace(ByteRange::from(0..0), "Good, ");
     println!("{:?}", buf);
-    buf.replace((0..0).into(), &[1]);
+    buf.replace(ByteRange::from(6..6), "world!");
     println!("{:?}", buf);
-    buf.replace((0..2).into(), &[]);
+    buf.replace(ByteRange::from(4..4), "bye");
     println!("{:?}", buf);
-    buf.replace((0..0).into(), &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    buf.replace(ByteRange::from(0..7), "Hello");
     println!("{:?}", buf);
-    buf.replace((4..8).into(), &[11, 12]);
-    println!("{:?}", buf);
-    buf.replace((6..6).into(), &[0, 0, 0, 0, 0, 0]);
-    println!("{:?}", buf);
+
+    println!("{}", buf);
 }

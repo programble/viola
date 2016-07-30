@@ -1,6 +1,7 @@
-use std::fmt::{Debug, Formatter, Error};
+use std::fmt::{Debug, Display, Formatter, Error};
 
 use super::buffer::GapBuffer;
+use super::string::GapString;
 
 struct Gap(usize);
 
@@ -18,5 +19,24 @@ impl Debug for GapBuffer {
             .entry(&Gap(self.gap_len()))
             .entries(b)
             .finish()
+    }
+}
+
+impl Debug for GapString {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let (a, b) = self.as_strs();
+        f.debug_tuple("")
+            .field(&a)
+            .field(&Gap(self.gap_len()))
+            .field(&b)
+            .finish()
+    }
+}
+
+impl Display for GapString {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let (a, b) = self.as_strs();
+        f.write_str(a)?;
+        f.write_str(b)
     }
 }
