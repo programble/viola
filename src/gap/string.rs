@@ -1,7 +1,13 @@
+use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::str;
 
-use super::{GapBuffer, GapString};
+use super::buffer::GapBuffer;
+
+/// Gap buffer string.
+pub struct GapString {
+    buf: GapBuffer,
+}
 
 impl GapString {
     /// Creates a new empty string without allocating.
@@ -53,5 +59,32 @@ impl GapString {
             assert!(end, "dest end not char boundary");
         }
         self.buf.splice(dest, src.as_bytes())
+    }
+}
+
+struct Gap(usize);
+
+impl Debug for Gap {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        write!(f, "[..{}..]", self.0)
+    }
+}
+
+impl Debug for GapString {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let (a, b) = self.as_strs();
+        f.debug_list()
+            .entry(&a)
+            .entry(&Gap(self.buf.gap_len()))
+            .entry(&b)
+            .finish()
+    }
+}
+
+impl Display for GapString {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let (a, b) =  self.as_strs();
+        f.write_str(a)?;
+        f.write_str(b)
     }
 }

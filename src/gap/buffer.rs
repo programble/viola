@@ -1,9 +1,14 @@
+use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::ptr;
 
 use range_ext::RangeExt;
 
-use super::GapBuffer;
+/// Gap buffer.
+pub struct GapBuffer {
+    buf: Vec<u8>,
+    gap: Range<usize>,
+}
 
 impl GapBuffer {
     /// Creates an empty gap buffer without allocating.
@@ -145,5 +150,32 @@ impl Into<Vec<u8>> for GapBuffer {
         let mut buf = self.buf;
         unsafe { buf.set_len(len); }
         buf
+    }
+}
+
+impl GapBuffer {
+    // Used by the GapString Debug implementation.
+    #[doc(hidden)]
+    pub fn gap_len(&self) -> usize {
+        self.gap.len()
+    }
+}
+
+struct Gap(usize);
+
+impl Debug for Gap {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        write!(f, "[..{}..]", self.0)
+    }
+}
+
+impl Debug for GapBuffer {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let (a, b) = self.as_slices();
+        f.debug_list()
+            .entries(a)
+            .entry(&Gap(self.gap.len()))
+            .entries(b)
+            .finish()
     }
 }
