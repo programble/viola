@@ -7,3 +7,7 @@ version = "0.0.0"
 name = "vio"
 
 [dependencies]
+
+[dev-dependencies]
+quickcheck = "0.3.1"
+quickcheck_macros = "0.2.28"
