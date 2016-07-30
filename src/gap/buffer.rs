@@ -38,8 +38,11 @@ impl GapBuffer {
     ///
     /// # Panics
     ///
-    /// Panics if `dest` is out of bounds.
+    /// Panics if the starting point is greater than the end point, or if either points are out of
+    /// bounds.
     pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
+        assert!(dest.start <= dest.end, "dest start greater than dest end");
+
         if dest.start > self.gap.start {
             assert!(dest.start <= self.len(), "dest start out of bounds");
             self.move_gap_up(dest.start);
