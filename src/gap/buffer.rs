@@ -91,12 +91,6 @@ impl GapBuffer {
         }
     }
 
-    /// Returns the two contiguous slices before and after the gap.
-    #[deprecated]
-    pub fn as_slices(&self) -> (&[u8], &[u8]) {
-        (&self.buf[self.gap.before()], &self.buf[self.gap.after()])
-    }
-
     /// Replaces a slice of bytes. Destination and source can be different lengths.
     ///
     /// Returns the range of written bytes.

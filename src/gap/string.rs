@@ -75,15 +75,6 @@ impl GapString {
         }
     }
 
-    /// Returns the two contiguous string slices before and after the gap.
-    #[deprecated]
-    pub fn as_strs(&self) -> (&str, &str) {
-        let (a, b) = self.buf.as_slices();
-        unsafe {
-            (str::from_utf8_unchecked(a), str::from_utf8_unchecked(b))
-        }
-    }
-
     /// Replaces a slice of the string. Destination and source can be different lengths.
     ///
     /// Returns the range of written bytes.
