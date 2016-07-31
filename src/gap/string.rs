@@ -100,11 +100,10 @@ impl GapString {
     }
 
     fn is_char_boundary(&self, index: usize) -> bool {
-        let (a, b) = self.as_strs();
-        if index < a.len() {
-            a.is_char_boundary(index)
-        } else {
-            b.is_char_boundary(index - a.len())
+        match self.slice(..) {
+            GapStr::Contiguous(a) => a.is_char_boundary(index),
+            GapStr::Fragmented(a, _) if index < a.len() => a.is_char_boundary(index),
+            GapStr::Fragmented(a, b) => b.is_char_boundary(index - a.len()),
         }
     }
 }
