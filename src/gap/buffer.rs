@@ -211,7 +211,7 @@ impl Into<Vec<u8>> for GapBuffer {
 impl<'a> From<&'a [u8]> for GapBuffer {
     fn from(slice: &'a [u8]) -> Self {
         let mut buffer = GapBuffer::new();
-        buffer.splice(0..0, slice);
+        buffer.splice(.., slice);
         buffer
     }
 }

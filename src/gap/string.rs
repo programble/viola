@@ -116,7 +116,7 @@ impl Into<String> for GapString {
 impl<'a> From<&'a str> for GapString {
     fn from(slice: &'a str) -> Self {
         let mut string = GapString::new();
-        string.splice(0..0, slice);
+        string.splice(.., slice);
         string
     }
 }
