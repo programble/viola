@@ -9,7 +9,7 @@ use range::IntoRange;
 
 /// Gap buffer string.
 ///
-/// See the [`GapBuffer`](struct.GapBuffer.html) documentation for more information.
+/// See the [`GapBuffer`](../buffer/struct.GapBuffer.html) documentation for more information.
 ///
 /// # Examples
 ///
