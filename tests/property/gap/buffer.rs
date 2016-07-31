@@ -1,5 +1,5 @@
 use quickcheck::TestResult;
-use viola::gap::GapBuffer;
+use viola::gap::buffer::GapBuffer;
 
 use super::{SliceRange, Splice};
 

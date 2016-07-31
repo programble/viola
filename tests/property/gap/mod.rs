@@ -1,7 +1,8 @@
 use std::ops::Range;
 
 use quickcheck::{Arbitrary, Gen};
-use viola::gap::{GapBuffer, GapString};
+use viola::gap::buffer::GapBuffer;
+use viola::gap::string::GapString;
 
 // A `Range<usize>` where start <= end. Helps to generate more valid splice operations.
 #[derive(Debug, Clone)]

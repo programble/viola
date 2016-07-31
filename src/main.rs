@@ -1,6 +1,6 @@
 extern crate viola;
 
-use viola::gap::GapString;
+use viola::gap::string::GapString;
 
 fn main() {
     let mut buf = GapString::new();

@@ -1,8 +1,10 @@
+//! Gap buffer string.
+
 use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::str;
 
-use gap::GapBuffer;
+use gap::buffer::GapBuffer;
 use range::IntoRange;
 
 /// Gap buffer string.
@@ -12,7 +14,7 @@ use range::IntoRange;
 /// # Examples
 ///
 /// ```
-/// use viola::gap::GapString;
+/// use viola::gap::string::GapString;
 ///
 /// let mut buf = GapString::new();
 ///
