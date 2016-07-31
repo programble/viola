@@ -146,14 +146,20 @@ impl Debug for GapString {
     }
 }
 
-impl Display for GapString {
+impl<'a> Display for GapStr<'a> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        match self.slice(..) {
+        match *self {
             GapStr::Contiguous(a) => f.write_str(a),
             GapStr::Fragmented(a, b) => {
                 f.write_str(a)?;
                 f.write_str(b)
             },
         }
+    }
+}
+
+impl Display for GapString {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        write!(f, "{}", self.slice(..))
     }
 }
