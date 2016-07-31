@@ -92,7 +92,7 @@ impl GapBuffer {
         }
         self.copy_into_gap(src);
 
-        dest.resize_end(src.len())
+        dest.with_len(src.len())
     }
 
     fn resize_buf(&mut self, additional: usize) {
@@ -152,7 +152,7 @@ impl GapBuffer {
     }
 
     fn copy_into_gap(&mut self, src: &[u8]) {
-        let dest = &mut self.buf[self.gap.resize_end(src.len())];
+        let dest = &mut self.buf[self.gap.with_len(src.len())];
         dest.copy_from_slice(src);
         self.gap.start += src.len();
     }

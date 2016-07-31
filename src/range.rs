@@ -41,10 +41,7 @@ pub trait RangeExt {
     fn after(&self) -> RangeFrom<usize>;
 
     /// Returns a range of length `len` with the same `start`.
-    fn resize_end(&self, len: usize) -> Self;
-
-    /// Returns a range of length `len` with the same `end`.
-    fn resize_start(&self, len: usize) -> Self;
+    fn with_len(&self, len: usize) -> Self;
 
     /// Adds `len` to the starting point and end point.
     fn add(&self, len: usize) -> Self;
@@ -62,12 +59,8 @@ impl RangeExt for Range<usize> {
         self.end..
     }
 
-    fn resize_end(&self, len: usize) -> Self {
+    fn with_len(&self, len: usize) -> Self {
         self.start..(self.start + len)
-    }
-
-    fn resize_start(&self, len: usize) -> Self {
-        (self.end - len)..self.end
     }
 
     fn add(&self, len: usize) -> Self {
