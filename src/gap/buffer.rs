@@ -5,6 +5,30 @@ use std::ptr;
 use range_ext::RangeExt;
 
 /// Gap buffer.
+///
+/// A buffer of two contigious segments with a gap between them. Editing operations move data
+/// between the two segments and write data into the gap. If the gap is filled by new data, a new
+/// one is allocated of half the total size of the buffer.
+///
+/// The gap buffer offers a single operation, splice, which deletes and inserts data.
+///
+/// # Examples
+///
+/// ```
+/// use viola::gap::GapBuffer;
+///
+/// let mut buf = GapBuffer::new();
+///
+/// // Inserting data.
+/// buf.splice(0..0, &[1, 2, 3, 4, 5]); // [1, 2, 3, 4, 5]
+///
+/// // Deleting data.
+/// buf.splice(1..3, &[]); // [1, 4, 5]
+///
+/// // Replacing data.
+/// buf.splice(0..2, &[8, 7, 6]); // [8, 7, 6, 5]
+/// # assert_eq!(vec![8, 7, 6, 5], Into::<Vec<u8>>::into(buf));
+/// ```
 pub struct GapBuffer {
     buf: Vec<u8>,
     gap: Range<usize>,
@@ -12,6 +36,8 @@ pub struct GapBuffer {
 
 impl GapBuffer {
     /// Creates an empty gap buffer without allocating.
+    ///
+    /// A gap will be allocated when data is inserted.
     pub fn new() -> Self {
         GapBuffer {
             buf: Vec::new(),
@@ -19,7 +45,7 @@ impl GapBuffer {
         }
     }
 
-    /// Creates a buffer with an allocated gap of `len` bytes.
+    /// Creates a gap buffer with a pre-allocated gap.
     pub fn with_gap(len: usize) -> Self {
         let mut buffer = GapBuffer::new();
         buffer.resize_buf(len);
@@ -27,23 +53,23 @@ impl GapBuffer {
         buffer
     }
 
-    /// Returns the length of the buffer (excluding gap).
+    /// Returns the length of the buffer, excluding the gap.
     pub fn len(&self) -> usize {
         self.buf.len() - self.gap.len()
     }
 
-    /// Returns the two byte slices before and after the gap.
+    /// Returns the two contiguous slices before and after the gap.
     pub fn as_slices(&self) -> (&[u8], &[u8]) {
         (&self.buf[self.gap.before()], &self.buf[self.gap.after()])
     }
 
-    /// Replaces the bytes at `dest` with the bytes in `src`.
+    /// Replaces a slice of bytes. Destination and source can be different lengths.
     ///
-    /// Returns the range of the written bytes.
+    /// Returns the range of written bytes.
     ///
     /// # Panics
     ///
-    /// Panics if the starting point is greater than the end point, or if either points are out of
+    /// Panics if the starting point is greater than the end point, or if either point is out of
     /// bounds.
     pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
         assert!(dest.start <= dest.end, "dest start greater than dest end");
