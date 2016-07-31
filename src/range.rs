@@ -1,6 +1,36 @@
 //! Range extensions.
 
-use std::ops::{Range, RangeFrom, RangeTo};
+use std::ops::{Range, RangeFrom, RangeFull, RangeTo};
+
+/// For converting different range types to `Range<usize>`.
+pub trait IntoRange {
+    /// Converts to a `Range` with a default end point.
+    fn into_range(self, end: usize) -> Range<usize>;
+}
+
+impl IntoRange for Range<usize> {
+    fn into_range(self, _end: usize) -> Range<usize> {
+        self
+    }
+}
+
+impl IntoRange for RangeFrom<usize> {
+    fn into_range(self, end: usize) -> Range<usize> {
+        self.start..end
+    }
+}
+
+impl IntoRange for RangeFull {
+    fn into_range(self, end: usize) -> Range<usize> {
+        0..end
+    }
+}
+
+impl IntoRange for RangeTo<usize> {
+    fn into_range(self, _end: usize) -> Range<usize> {
+        0..self.end
+    }
+}
 
 /// Extensions for `Range<usize>`.
 pub trait RangeExt {

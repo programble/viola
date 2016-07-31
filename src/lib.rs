@@ -18,4 +18,4 @@
 )]
 
 pub mod gap;
-pub mod range_ext;
+pub mod range;

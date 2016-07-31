@@ -2,7 +2,8 @@ use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::str;
 
-use super::buffer::GapBuffer;
+use gap::GapBuffer;
+use range::IntoRange;
 
 /// Gap buffer string.
 ///
@@ -16,13 +17,13 @@ use super::buffer::GapBuffer;
 /// let mut buf = GapString::new();
 ///
 /// // Inserting data.
-/// buf.splice(0..0, "abcde"); // "abcde"
+/// buf.splice(.., "abcde"); // "abcde"
 ///
 /// // Deleting data.
 /// buf.splice(1..3, ""); // "ade"
 ///
 /// // Replacing data.
-/// buf.splice(0..2, "hgf"); // "hgfe"
+/// buf.splice(..2, "hgf"); // "hgfe"
 /// # assert_eq!("hgfe", Into::<String>::into(buf));
 /// ```
 pub struct GapString {
@@ -61,7 +62,8 @@ impl GapString {
     ///
     /// Panics if the starting point is greater than the end point, or if either point is not a
     /// char boundary.
-    pub fn splice(&mut self, dest: Range<usize>, src: &str) -> Range<usize> {
+    pub fn splice<R: IntoRange>(&mut self, dest: R, src: &str) -> Range<usize> {
+        let dest = dest.into_range(self.len());
         assert!(self.is_char_boundary(dest.start), "dest start not char boundary");
         assert!(self.is_char_boundary(dest.end), "dest end not char boundary");
         self.buf.splice(dest, src.as_bytes())

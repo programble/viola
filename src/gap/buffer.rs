@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::ptr;
 
-use range_ext::RangeExt;
+use range::{IntoRange, RangeExt};
 
 /// Gap buffer.
 ///
@@ -20,13 +20,13 @@ use range_ext::RangeExt;
 /// let mut buf = GapBuffer::new();
 ///
 /// // Inserting data.
-/// buf.splice(0..0, &[1, 2, 3, 4, 5]); // [1, 2, 3, 4, 5]
+/// buf.splice(.., &[1, 2, 3, 4, 5]); // [1, 2, 3, 4, 5]
 ///
 /// // Deleting data.
 /// buf.splice(1..3, &[]); // [1, 4, 5]
 ///
 /// // Replacing data.
-/// buf.splice(0..2, &[8, 7, 6]); // [8, 7, 6, 5]
+/// buf.splice(..2, &[8, 7, 6]); // [8, 7, 6, 5]
 /// # assert_eq!(vec![8, 7, 6, 5], Into::<Vec<u8>>::into(buf));
 /// ```
 pub struct GapBuffer {
@@ -71,7 +71,8 @@ impl GapBuffer {
     ///
     /// Panics if the starting point is greater than the end point, or if either point is out of
     /// bounds.
-    pub fn splice(&mut self, dest: Range<usize>, src: &[u8]) -> Range<usize> {
+    pub fn splice<R: IntoRange>(&mut self, dest: R, src: &[u8]) -> Range<usize> {
+        let dest = dest.into_range(self.len());
         assert!(dest.start <= dest.end, "dest start greater than dest end");
 
         if dest.start > self.gap.start {
