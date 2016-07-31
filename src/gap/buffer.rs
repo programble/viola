@@ -82,7 +82,7 @@ impl GapBuffer {
         if range.start < self.gap.start && range.end <= self.gap.start {
             GapSlice::Contiguous(&self.buf[range])
         } else if range.start >= self.gap.start {
-            GapSlice::Contiguous(&self.buf[range.add(self.gap.start)])
+            GapSlice::Contiguous(&self.buf[range.add(self.gap.len())])
         } else {
             GapSlice::Fragmented(
                 &self.buf[range.with_end(self.gap.start)],
