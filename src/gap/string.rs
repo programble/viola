@@ -103,6 +103,16 @@ impl<'a> From<&'a str> for GapString {
     }
 }
 
+/// Slice of a gap buffer string.
+#[derive(Debug)]
+pub enum GapStr<'a> {
+    /// Contiguous slice, i.e. completely either side of the gap.
+    Contiguous(&'a str),
+
+    /// Fragmented slice, i.e. separated by the gap.
+    Fragmented(&'a str, &'a str),
+}
+
 struct Gap(usize);
 
 impl Debug for Gap {

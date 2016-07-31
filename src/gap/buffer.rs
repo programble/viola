@@ -8,7 +8,7 @@ use range::{IntoRange, RangeExt};
 
 /// Gap buffer.
 ///
-/// A buffer of two contigious segments with a gap between them. Editing operations move data
+/// A buffer of two contiguous segments with a gap between them. Editing operations move data
 /// between the two segments and write data into the gap. If the gap is filled by new data, a new
 /// one is allocated of half the total size of the buffer.
 ///
@@ -188,6 +188,16 @@ impl<'a> From<&'a [u8]> for GapBuffer {
         buffer.splice(0..0, slice);
         buffer
     }
+}
+
+/// Slice of a gap buffer.
+#[derive(Debug)]
+pub enum GapSlice<'a> {
+    /// Contiguous slice, i.e. completely either side of the gap.
+    Contiguous(&'a [u8]),
+
+    /// Fragmented slice, i.e. separated by the gap.
+    Fragmented(&'a [u8], &'a [u8]),
 }
 
 impl GapBuffer {
