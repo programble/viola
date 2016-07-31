@@ -4,7 +4,7 @@
 [![Build status][travis-badge]][travis]
 
 [crate]: https://crates.io/crates/viola
-[travis]: https://travis-vi.org/programble/viola
+[travis]: https://travis-ci.org/programble/viola
 [crate-badge]: https://img.shields.io/crates/v/viola.svg
 [travis-badge]: https://img.shields.io/travis/programble/viola/master.svg
 
