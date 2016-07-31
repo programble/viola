@@ -62,23 +62,18 @@ impl GapString {
     /// Panics if the starting point is greater than the end point, or if either point is not a
     /// char boundary.
     pub fn splice(&mut self, dest: Range<usize>, src: &str) -> Range<usize> {
-        {
-            // TODO: Refactor.
-            let (a, b) = self.as_strs();
-            let start = if dest.start < a.len() {
-                a.is_char_boundary(dest.start)
-            } else {
-                b.is_char_boundary(dest.start - a.len())
-            };
-            let end = if dest.end < a.len() {
-                a.is_char_boundary(dest.end)
-            } else {
-                b.is_char_boundary(dest.end - a.len())
-            };
-            assert!(start, "dest start not char boundary");
-            assert!(end, "dest end not char boundary");
-        }
+        assert!(self.is_char_boundary(dest.start), "dest start not char boundary");
+        assert!(self.is_char_boundary(dest.end), "dest end not char boundary");
         self.buf.splice(dest, src.as_bytes())
+    }
+
+    fn is_char_boundary(&self, index: usize) -> bool {
+        let (a, b) = self.as_strs();
+        if index < a.len() {
+            a.is_char_boundary(index)
+        } else {
+            b.is_char_boundary(index - a.len())
+        }
     }
 }
 
