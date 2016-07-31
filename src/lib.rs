@@ -12,14 +12,8 @@
 )]
 
 #![feature(
-    associated_consts,
-    box_patterns,
-    box_syntax,
-    const_fn,
-    inclusive_range_syntax,
     pub_restricted,
     question_mark,
-    specialization,
     type_ascription,
 )]
 
