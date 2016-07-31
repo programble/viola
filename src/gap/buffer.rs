@@ -36,6 +36,16 @@ pub struct GapBuffer {
     gap: Range<usize>,
 }
 
+/// Slice of a gap buffer.
+#[derive(Debug)]
+pub enum GapSlice<'a> {
+    /// Contiguous slice, i.e. completely either side of the gap.
+    Contiguous(&'a [u8]),
+
+    /// Fragmented slice, i.e. separated by the gap.
+    Fragmented(&'a [u8], &'a [u8]),
+}
+
 impl GapBuffer {
     /// Creates an empty gap buffer without allocating.
     ///
@@ -60,7 +70,29 @@ impl GapBuffer {
         self.buf.len() - self.gap.len()
     }
 
+    /// Returns a slice of the buffer.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the starting point is greater than the end point, or if either point is out of
+    /// bounds.
+    pub fn slice<R: IntoRange>(&self, range: R) -> GapSlice {
+        let range = range.into_range(self.len());
+
+        if range.start < self.gap.start && range.end <= self.gap.start {
+            GapSlice::Contiguous(&self.buf[range])
+        } else if range.start >= self.gap.start {
+            GapSlice::Contiguous(&self.buf[range.add(self.gap.start)])
+        } else {
+            GapSlice::Fragmented(
+                &self.buf[range.with_end(self.gap.start)],
+                &self.buf[range.add(self.gap.start).with_start(self.gap.end)],
+            )
+        }
+    }
+
     /// Returns the two contiguous slices before and after the gap.
+    #[deprecated]
     pub fn as_slices(&self) -> (&[u8], &[u8]) {
         (&self.buf[self.gap.before()], &self.buf[self.gap.after()])
     }
@@ -188,16 +220,6 @@ impl<'a> From<&'a [u8]> for GapBuffer {
         buffer.splice(0..0, slice);
         buffer
     }
-}
-
-/// Slice of a gap buffer.
-#[derive(Debug)]
-pub enum GapSlice<'a> {
-    /// Contiguous slice, i.e. completely either side of the gap.
-    Contiguous(&'a [u8]),
-
-    /// Fragmented slice, i.e. separated by the gap.
-    Fragmented(&'a [u8], &'a [u8]),
 }
 
 impl GapBuffer {

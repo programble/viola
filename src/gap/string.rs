@@ -4,7 +4,7 @@ use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::str;
 
-use gap::buffer::GapBuffer;
+use gap::buffer::{GapBuffer, GapSlice};
 use range::IntoRange;
 
 /// Gap buffer string.
@@ -32,6 +32,16 @@ pub struct GapString {
     buf: GapBuffer,
 }
 
+/// Slice of a gap buffer string.
+#[derive(Debug)]
+pub enum GapStr<'a> {
+    /// Contiguous slice, i.e. completely either side of the gap.
+    Contiguous(&'a str),
+
+    /// Fragmented slice, i.e. separated by the gap.
+    Fragmented(&'a str, &'a str),
+}
+
 impl GapString {
     /// Creates an empty string without allocating.
     pub fn new() -> Self {
@@ -48,7 +58,25 @@ impl GapString {
         self.buf.len()
     }
 
+    /// Returns a slice of the string.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the starting point is greater than the end point, or if either point is not a
+    /// char boundary.
+    pub fn slice<R: IntoRange>(&self, range: R) -> GapStr {
+        match self.buf.slice(range) {
+            GapSlice::Contiguous(a) => unsafe {
+                GapStr::Contiguous(str::from_utf8_unchecked(a))
+            },
+            GapSlice::Fragmented(a, b) => unsafe {
+                GapStr::Fragmented(str::from_utf8_unchecked(a), str::from_utf8_unchecked(b))
+            },
+        }
+    }
+
     /// Returns the two contiguous string slices before and after the gap.
+    #[deprecated]
     pub fn as_strs(&self) -> (&str, &str) {
         let (a, b) = self.buf.as_slices();
         unsafe {
@@ -101,16 +129,6 @@ impl<'a> From<&'a str> for GapString {
         string.splice(0..0, slice);
         string
     }
-}
-
-/// Slice of a gap buffer string.
-#[derive(Debug)]
-pub enum GapStr<'a> {
-    /// Contiguous slice, i.e. completely either side of the gap.
-    Contiguous(&'a str),
-
-    /// Fragmented slice, i.e. separated by the gap.
-    Fragmented(&'a str, &'a str),
 }
 
 struct Gap(usize);
