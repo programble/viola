@@ -54,3 +54,6 @@ impl Splice<str> for String {
         self.insert_str(dest.0.start, src);
     }
 }
+
+mod buffer;
+mod string;

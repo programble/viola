@@ -1,21 +1,7 @@
-#![feature(
-    box_syntax,
-    insert_str,
-    plugin,
-    type_ascription,
-)]
-
-#![plugin(quickcheck_macros)]
-
-extern crate quickcheck;
-extern crate viola;
-
-mod common;
-
 use quickcheck::TestResult;
 use viola::gap::GapBuffer;
 
-use common::{SliceRange, Splice};
+use super::{SliceRange, Splice};
 
 #[quickcheck]
 fn empty_splice(src: Vec<u8>) -> bool {

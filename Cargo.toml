@@ -6,6 +6,10 @@ version = "0.0.0"
 [[bin]]
 name = "vio"
 
+[[test]]
+name = "property"
+path = "tests/property/test.rs"
+
 [dependencies]
 
 [dev-dependencies]
