@@ -141,19 +141,29 @@ impl Debug for Gap {
 
 impl Debug for GapString {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let (a, b) = self.as_strs();
-        f.debug_list()
-            .entry(&a)
-            .entry(&Gap(self.buf.gap_len()))
-            .entry(&b)
-            .finish()
+        let gap = Gap(self.buf.gap_len());
+        match self.slice(..) {
+            GapStr::Contiguous(b) if self.buf.gap_start_zero() => {
+                f.debug_list().entry(&gap).entry(&b).finish()
+            },
+            GapStr::Contiguous(a) => {
+                f.debug_list().entry(&a).entry(&gap).finish()
+            },
+            GapStr::Fragmented(a, b) => {
+                f.debug_list().entry(&a).entry(&gap).entry(&b).finish()
+            },
+        }
     }
 }
 
 impl Display for GapString {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let (a, b) =  self.as_strs();
-        f.write_str(a)?;
-        f.write_str(b)
+        match self.slice(..) {
+            GapStr::Contiguous(a) => f.write_str(a),
+            GapStr::Fragmented(a, b) => {
+                f.write_str(a)?;
+                f.write_str(b)
+            },
+        }
     }
 }

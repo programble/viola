@@ -86,7 +86,7 @@ impl GapBuffer {
         } else {
             GapSlice::Fragmented(
                 &self.buf[range.with_end(self.gap.start)],
-                &self.buf[range.add(self.gap.start).with_start(self.gap.end)],
+                &self.buf[range.add(self.gap.len()).with_start(self.gap.end)],
             )
         }
     }
@@ -222,10 +222,14 @@ impl<'a> From<&'a [u8]> for GapBuffer {
     }
 }
 
+// Used by the GapString Debug implementation.
 impl GapBuffer {
-    // Used by the GapString Debug implementation.
     pub(super) fn gap_len(&self) -> usize {
         self.gap.len()
+    }
+
+    pub(super) fn gap_start_zero(&self) -> bool {
+        self.gap.start == 0
     }
 }
 
@@ -239,11 +243,17 @@ impl Debug for Gap {
 
 impl Debug for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let (a, b) = self.as_slices();
-        f.debug_list()
-            .entries(a)
-            .entry(&Gap(self.gap.len()))
-            .entries(b)
-            .finish()
+        let gap = Gap(self.gap.len());
+        match self.slice(..) {
+            GapSlice::Contiguous(b) if self.gap.start == 0 => {
+                f.debug_list().entry(&gap).entries(b).finish()
+            },
+            GapSlice::Contiguous(a) => {
+                f.debug_list().entries(a).entry(&gap).finish()
+            },
+            GapSlice::Fragmented(a, b) => {
+                f.debug_list().entries(a).entry(&gap).entries(b).finish()
+            },
+        }
     }
 }
