@@ -4,6 +4,16 @@ use viola::gap::GapString;
 use super::{SliceRange, Splice};
 
 #[quickcheck]
+fn from_string_into_string(string: String) -> bool {
+    string == GapString::from(string.clone()).into(): String
+}
+
+#[quickcheck]
+fn from_str_into_string(string: String) -> bool {
+    string == GapString::from(string.as_str()).into(): String
+}
+
+#[quickcheck]
 fn empty_splice(src: String) -> bool {
     let mut string = String::new();
     let mut buffer = GapString::new();

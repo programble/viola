@@ -4,6 +4,16 @@ use viola::gap::GapBuffer;
 use super::{SliceRange, Splice};
 
 #[quickcheck]
+fn from_vec_into_vec(vec: Vec<u8>) -> bool {
+    vec == GapBuffer::from(vec.clone()).into(): Vec<u8>
+}
+
+#[quickcheck]
+fn from_slice_into_vec(vec: Vec<u8>) -> bool {
+    vec == GapBuffer::from(vec.as_slice()).into(): Vec<u8>
+}
+
+#[quickcheck]
 fn empty_splice(src: Vec<u8>) -> bool {
     let mut vec = Vec::new();
     let mut buf = GapBuffer::new();
