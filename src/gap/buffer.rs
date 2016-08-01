@@ -219,6 +219,20 @@ impl<'a> From<&'a [u8]> for GapBuffer {
     }
 }
 
+impl<'a> GapSlice<'a> {
+    /// Copies the slice into a new `Vec<u8>`.
+    pub fn to_vec(&self) -> Vec<u8> {
+        match *self {
+            GapSlice::Contiguous(a) => a.to_vec(),
+            GapSlice::Fragmented(a, b) => {
+                let mut vec = a.to_vec();
+                vec.extend(b);
+                vec
+            },
+        }
+    }
+}
+
 // Used by the GapString Debug implementation.
 impl GapBuffer {
     pub(super) fn gap_len(&self) -> usize {
