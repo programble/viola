@@ -55,3 +55,22 @@ fn splice_seq(init: String, splices: Vec<(SliceRange, String)>) -> TestResult {
 
     TestResult::from_bool(string == buffer.into(): String)
 }
+
+#[quickcheck]
+fn splice_slice(init: String, dest: SliceRange, src: String, slice: SliceRange) -> TestResult {
+    if !init.is_char_boundary(dest.0.start) || !init.is_char_boundary(dest.0.end) {
+        return TestResult::discard();
+    }
+
+    let mut string = init.clone();
+    let mut buffer = GapString::from(init);
+
+    Splice::splice(&mut string, dest.clone(), &src);
+    Splice::splice(&mut buffer, dest, &src);
+
+    if !string.is_char_boundary(slice.0.start) || !string.is_char_boundary(slice.0.end) {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(buffer.slice(slice.0.clone()).to_string() == &string[slice.0])
+}

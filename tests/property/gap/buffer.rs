@@ -55,3 +55,22 @@ fn splice_seq(init: Vec<u8>, splices: Vec<(SliceRange, Vec<u8>)>) -> TestResult 
 
     TestResult::from_bool(vec == buf.into(): Vec<u8>)
 }
+
+#[quickcheck]
+fn splice_slice(init: Vec<u8>, dest: SliceRange, src: Vec<u8>, slice: SliceRange) -> TestResult {
+    if dest.0.start > init.len() || dest.0.end > init.len() {
+        return TestResult::discard();
+    }
+
+    let mut vec = init.clone();
+    let mut buf = GapBuffer::from(init);
+
+    Splice::splice(&mut vec, dest.clone(), &src);
+    Splice::splice(&mut buf, dest, &src);
+
+    if slice.0.start > vec.len() || slice.0.end > vec.len() {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(buf.slice(slice.0.clone()).to_vec() == &vec[slice.0])
+}
