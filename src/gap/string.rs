@@ -34,7 +34,7 @@ pub struct GapString {
 /// Slice of a gap buffer string.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GapStr<'a> {
-    /// Contiguous slice, i.e. completely either side of the gap.
+    /// Contiguous slice, i.e. entirely either side of the gap.
     Contiguous(&'a str),
 
     /// Fragmented slice, i.e. separated by the gap.
