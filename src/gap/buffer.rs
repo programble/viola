@@ -12,24 +12,27 @@ use range::{IntoRange, RangeExt};
 /// between the two segments and write data into the gap. If the gap is filled by new data, a new
 /// one is allocated of half the total size of the buffer.
 ///
-/// The gap buffer offers a single operation, splice, which deletes and inserts data.
+/// A slice of a gap buffer can be either contiguous or fragmented. A contiguous slice is entirely
+/// either side of the gap, while a fragmented slice is divided by it.
+///
+/// The gap buffer offers a single operation, splice, which both deletes and inserts data. These
+/// operations are performed by moving, expanding, and shrinking the gap.
 ///
 /// # Examples
 ///
 /// ```
-/// use viola::gap::buffer::GapBuffer;
+/// use viola::gap::buffer::{GapBuffer, GapSlice};
 ///
 /// let mut buf = GapBuffer::new();
 ///
-/// // Inserting data.
-/// buf.splice(.., &[1, 2, 3, 4, 5]); // [1, 2, 3, 4, 5]
+/// buf.splice(.., &[1, 2, 3, 4, 5]);
+/// assert_eq!(GapSlice::Contiguous(&[1, 2, 3, 4, 5]), buf.slice(..));
 ///
-/// // Deleting data.
-/// buf.splice(1..3, &[]); // [1, 4, 5]
+/// buf.splice(1..3, &[]);
+/// assert_eq!(GapSlice::Fragmented(&[1], &[4, 5]), buf.slice(..));
 ///
-/// // Replacing data.
-/// buf.splice(..2, &[8, 7, 6]); // [8, 7, 6, 5]
-/// # assert_eq!(vec![8, 7, 6, 5], Into::<Vec<u8>>::into(buf));
+/// buf.splice(..2, &[8, 7, 6]);
+/// assert_eq!(GapSlice::Fragmented(&[8, 7, 6], &[5]), buf.slice(..));
 /// ```
 pub struct GapBuffer {
     buf: Vec<u8>,
@@ -37,7 +40,7 @@ pub struct GapBuffer {
 }
 
 /// Slice of a gap buffer.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GapSlice<'a> {
     /// Contiguous slice, i.e. completely either side of the gap.
     Contiguous(&'a [u8]),

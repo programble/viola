@@ -14,26 +14,25 @@ use range::IntoRange;
 /// # Examples
 ///
 /// ```
-/// use viola::gap::string::GapString;
+/// use viola::gap::string::{GapString, GapStr};
 ///
 /// let mut buf = GapString::new();
 ///
-/// // Inserting data.
-/// buf.splice(.., "abcde"); // "abcde"
+/// buf.splice(.., "abcde");
+/// assert_eq!(GapStr::Contiguous("abcde"), buf.slice(..));
 ///
-/// // Deleting data.
-/// buf.splice(1..3, ""); // "ade"
+/// buf.splice(1..3, "");
+/// assert_eq!(GapStr::Fragmented("a", "de"), buf.slice(..));
 ///
-/// // Replacing data.
-/// buf.splice(..2, "hgf"); // "hgfe"
-/// # assert_eq!("hgfe", Into::<String>::into(buf));
+/// buf.splice(..2, "hgf");
+/// assert_eq!(GapStr::Fragmented("hgf", "e"), buf.slice(..));
 /// ```
 pub struct GapString {
     buf: GapBuffer,
 }
 
 /// Slice of a gap buffer string.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GapStr<'a> {
     /// Contiguous slice, i.e. completely either side of the gap.
     Contiguous(&'a str),
