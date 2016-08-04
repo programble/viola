@@ -2,8 +2,9 @@
 
 use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
-use std::str;
+use std::str::{self, Chars};
 
+use gap::{GapIter, IterState};
 use gap::buffer::{GapBuffer, GapSlice};
 use range::IntoRange;
 
@@ -133,6 +134,26 @@ impl<'a> GapStr<'a> {
             },
         }
     }
+
+    /// Returns an iterator over the chars of a slice.
+    pub fn chars(self) -> GapIter<Chars<'a>> {
+        match self {
+            GapStr::Contiguous(back) => GapIter {
+                front: None,
+                back: back.chars(),
+                state: IterState::Back,
+            },
+            GapStr::Fragmented(front, back) => GapIter {
+                front: Some(front.chars()),
+                back: back.chars(),
+                state: IterState::Both,
+            },
+        }
+    }
+
+    // TODO: char_indices, which will require its own iterator.
+
+    // TODO: lines, which will require its own iterator.
 }
 
 struct Gap(usize);
