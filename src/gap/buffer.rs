@@ -225,10 +225,10 @@ impl<'a> GapSlice<'a> {
     /// Copies the slice into a new `Vec<u8>`.
     pub fn to_vec(&self) -> Vec<u8> {
         match *self {
-            GapSlice::Contiguous(a) => a.to_vec(),
-            GapSlice::Fragmented(a, b) => {
-                let mut vec = a.to_vec();
-                vec.extend(b);
+            GapSlice::Contiguous(back) => back.to_vec(),
+            GapSlice::Fragmented(front, back) => {
+                let mut vec = front.to_vec();
+                vec.extend(back);
                 vec
             },
         }
@@ -278,14 +278,14 @@ impl Debug for GapBuffer {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let gap = Gap(self.gap.len());
         match self.slice(..) {
-            GapSlice::Contiguous(b) if self.gap.start == 0 => {
-                f.debug_list().entry(&gap).entries(b).finish()
+            GapSlice::Contiguous(back) if self.gap.start == 0 => {
+                f.debug_list().entry(&gap).entries(back).finish()
             },
-            GapSlice::Contiguous(a) => {
-                f.debug_list().entries(a).entry(&gap).finish()
+            GapSlice::Contiguous(front) => {
+                f.debug_list().entries(front).entry(&gap).finish()
             },
-            GapSlice::Fragmented(a, b) => {
-                f.debug_list().entries(a).entry(&gap).entries(b).finish()
+            GapSlice::Fragmented(front, back) => {
+                f.debug_list().entries(front).entry(&gap).entries(back).finish()
             },
         }
     }

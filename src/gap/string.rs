@@ -65,11 +65,14 @@ impl GapString {
     /// char boundary.
     pub fn slice<R: IntoRange>(&self, range: R) -> GapStr {
         match self.buf.slice(range) {
-            GapSlice::Contiguous(a) => unsafe {
-                GapStr::Contiguous(str::from_utf8_unchecked(a))
+            GapSlice::Contiguous(back) => unsafe {
+                GapStr::Contiguous(str::from_utf8_unchecked(back))
             },
-            GapSlice::Fragmented(a, b) => unsafe {
-                GapStr::Fragmented(str::from_utf8_unchecked(a), str::from_utf8_unchecked(b))
+            GapSlice::Fragmented(front, back) => unsafe {
+                GapStr::Fragmented(
+                    str::from_utf8_unchecked(front),
+                    str::from_utf8_unchecked(back),
+                )
             },
         }
     }
@@ -91,9 +94,9 @@ impl GapString {
 
     fn is_char_boundary(&self, index: usize) -> bool {
         match self.slice(..) {
-            GapStr::Contiguous(a) => a.is_char_boundary(index),
-            GapStr::Fragmented(a, _) if index < a.len() => a.is_char_boundary(index),
-            GapStr::Fragmented(a, b) => b.is_char_boundary(index - a.len()),
+            GapStr::Contiguous(back) => back.is_char_boundary(index),
+            GapStr::Fragmented(front, _) if index < front.len() => front.is_char_boundary(index),
+            GapStr::Fragmented(front, back) => back.is_char_boundary(index - front.len()),
         }
     }
 }
@@ -144,14 +147,14 @@ impl Debug for GapString {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let gap = Gap(self.buf.gap_len());
         match self.slice(..) {
-            GapStr::Contiguous(b) if self.buf.gap_start_zero() => {
-                f.debug_list().entry(&gap).entry(&b).finish()
+            GapStr::Contiguous(back) if self.buf.gap_start_zero() => {
+                f.debug_list().entry(&gap).entry(&back).finish()
             },
-            GapStr::Contiguous(a) => {
-                f.debug_list().entry(&a).entry(&gap).finish()
+            GapStr::Contiguous(front) => {
+                f.debug_list().entry(&front).entry(&gap).finish()
             },
-            GapStr::Fragmented(a, b) => {
-                f.debug_list().entry(&a).entry(&gap).entry(&b).finish()
+            GapStr::Fragmented(front, back) => {
+                f.debug_list().entry(&front).entry(&gap).entry(&back).finish()
             },
         }
     }
@@ -160,10 +163,10 @@ impl Debug for GapString {
 impl<'a> Display for GapStr<'a> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         match *self {
-            GapStr::Contiguous(a) => f.write_str(a),
-            GapStr::Fragmented(a, b) => {
-                f.write_str(a)?;
-                f.write_str(b)
+            GapStr::Contiguous(back) => f.write_str(back),
+            GapStr::Fragmented(front, back) => {
+                f.write_str(front)?;
+                f.write_str(back)
             },
         }
     }
