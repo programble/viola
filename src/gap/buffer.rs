@@ -3,8 +3,10 @@
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::ptr;
+use std::slice::Iter;
 
 use range::{IntoRange, RangeExt};
+use super::{GapIter, IterState};
 
 /// Gap buffer.
 ///
@@ -228,6 +230,26 @@ impl<'a> GapSlice<'a> {
                 let mut vec = a.to_vec();
                 vec.extend(b);
                 vec
+            },
+        }
+    }
+}
+
+impl<'a> IntoIterator for GapSlice<'a> {
+    type Item = &'a u8;
+    type IntoIter = GapIter<Iter<'a, u8>>;
+
+    fn into_iter(self) -> GapIter<Iter<'a, u8>> {
+        match self {
+            GapSlice::Contiguous(back) => GapIter {
+                front: None,
+                back: back.into_iter(),
+                state: IterState::Back,
+            },
+            GapSlice::Fragmented(front, back) => GapIter {
+                front: Some(front.into_iter()),
+                back: back.into_iter(),
+                state: IterState::Both,
             },
         }
     }
