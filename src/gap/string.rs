@@ -120,6 +120,18 @@ impl<'a> From<&'a str> for GapString {
     }
 }
 
+impl<'a> GapStr<'a> {
+    /// Converts a string slice to a byte slice.
+    pub fn as_bytes(self) -> GapSlice<'a> {
+        match self {
+            GapStr::Contiguous(back) => GapSlice::Contiguous(back.as_bytes()),
+            GapStr::Fragmented(front, back) => {
+                GapSlice::Fragmented(front.as_bytes(), back.as_bytes())
+            },
+        }
+    }
+}
+
 struct Gap(usize);
 
 impl Debug for Gap {
