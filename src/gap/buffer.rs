@@ -5,8 +5,8 @@ use std::ops::Range;
 use std::ptr;
 use std::slice::Iter;
 
+use gap::{GapIter, IterState};
 use range::{IntoRange, RangeExt};
-use super::{GapIter, IterState};
 
 /// Gap buffer.
 ///
