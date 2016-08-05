@@ -202,6 +202,25 @@ impl<'a> Iterator for GapCharIndices<'a> {
     }
 }
 
+impl<'a> DoubleEndedIterator for GapCharIndices<'a> {
+    fn next_back(&mut self) -> Option<(usize, char)> {
+        match self.state {
+            IterState::Both => match self.back.next_back() {
+                Some((index, ch)) => Some((index + self.front_len, ch)),
+                None => {
+                    self.state = IterState::Front;
+                    self.front.as_mut().unwrap().next_back()
+                },
+            },
+            IterState::Front => self.front.as_mut().unwrap().next_back(),
+            IterState::Back => match self.back.next_back() {
+                Some((index, ch)) => Some((index + self.front_len, ch)),
+                _ => None,
+            },
+        }
+    }
+}
+
 struct Gap(usize);
 
 impl Debug for Gap {

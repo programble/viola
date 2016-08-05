@@ -22,6 +22,11 @@ fn main() {
     }
     println!("");
 
+    for x in buf.slice(..).char_indices().rev() {
+        print!("{:?} ", x);
+    }
+    println!("");
+
     buf.splice(..1, "H");
     println!("{:?}", buf);
 
