@@ -2,7 +2,7 @@
 
 use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 use std::ops::Range;
-use std::str::{self, Chars};
+use std::str::{self, Chars, CharIndices};
 
 use gap::{GapIter, IterState};
 use gap::buffer::{GapBuffer, GapSlice};
@@ -40,6 +40,15 @@ pub enum GapStr<'a> {
 
     /// Fragmented slice, i.e. separated by the gap.
     Fragmented(&'a str, &'a str),
+}
+
+/// Iterator for a gap string's characters and their byte offsets.
+#[derive(Debug, Clone)]
+pub struct GapCharIndices<'a> {
+    front_len: usize,
+    front: Option<CharIndices<'a>>,
+    back: CharIndices<'a>,
+    state: IterState,
 }
 
 impl GapString {
@@ -151,9 +160,46 @@ impl<'a> GapStr<'a> {
         }
     }
 
-    // TODO: char_indices, which will require its own iterator.
+    /// Returns an iterator over the chars of a slice, and their positions.
+    pub fn char_indices(self) -> GapCharIndices<'a> {
+        match self {
+            GapStr::Contiguous(back) => GapCharIndices {
+                front_len: 0,
+                front: None,
+                back: back.char_indices(),
+                state: IterState::Back,
+            },
+            GapStr::Fragmented(front, back) => GapCharIndices {
+                front_len: front.len(),
+                front: Some(front.char_indices()),
+                back: back.char_indices(),
+                state: IterState::Both,
+            },
+        }
+    }
 
     // TODO: lines, which will require its own iterator.
+}
+
+impl<'a> Iterator for GapCharIndices<'a> {
+    type Item = (usize, char);
+
+    fn next(&mut self) -> Option<(usize, char)> {
+        match self.state {
+            IterState::Both => match self.front.as_mut().unwrap().next() {
+                elt @ Some(..) => elt,
+                None => {
+                    self.state = IterState::Back;
+                    self.next()
+                },
+            },
+            IterState::Front => self.front.as_mut().unwrap().next(),
+            IterState::Back => match self.back.next() {
+                Some((index, ch)) => Some((index + self.front_len, ch)),
+                _ => None,
+            },
+        }
+    }
 }
 
 struct Gap(usize);

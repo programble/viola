@@ -17,8 +17,8 @@ fn main() {
     println!("{:?} {:?} {:?}", buf.slice(..), buf.slice(..5), buf.slice(5..));
     println!("{:?} {:?} {:?}", buf.slice(1..7), buf.slice(1..3), buf.slice(6..10));
 
-    for c in buf.slice(..).chars() {
-        print!("{} ", c);
+    for x in buf.slice(..).char_indices() {
+        print!("{:?} ", x);
     }
     println!("");
 
