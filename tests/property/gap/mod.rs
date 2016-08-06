@@ -1,8 +1,9 @@
 use std::ops::Range;
+use std::string::String as StdString;
 
 use quickcheck::{Arbitrary, Gen};
-use viola::gap::buffer::GapBuffer;
-use viola::gap::string::GapString;
+use viola::gap::Buffer;
+use viola::gap::String;
 
 // A `Range<usize>` where start <= end. Helps to generate more valid splice operations.
 #[derive(Debug, Clone)]
@@ -26,13 +27,13 @@ pub trait Splice<S: ?Sized> {
     fn splice(&mut self, dest: SliceRange, src: &S);
 }
 
-impl Splice<[u8]> for GapBuffer {
+impl Splice<[u8]> for Buffer {
     fn splice(&mut self, dest: SliceRange, src: &[u8]) {
         self.splice(dest.0, src);
     }
 }
 
-impl Splice<str> for GapString {
+impl Splice<str> for String {
     fn splice(&mut self, dest: SliceRange, src: &str) {
         self.splice(dest.0, src);
     }
@@ -49,7 +50,7 @@ impl Splice<[u8]> for Vec<u8> {
     }
 }
 
-impl Splice<str> for String {
+impl Splice<str> for StdString {
     fn splice(&mut self, dest: SliceRange, src: &str) {
         self.drain(dest.0.clone());
         self.insert_str(dest.0.start, src);

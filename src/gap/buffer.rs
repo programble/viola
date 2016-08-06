@@ -1,72 +1,31 @@
-//! Gap buffer.
-
-use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::ops::Range;
 use std::ptr;
-use std::slice::Iter;
 
-use gap::{GapIter, IterState};
 use range::{IntoRange, RangeExt};
+use super::Slice;
 
 /// Gap buffer.
-///
-/// A buffer of two contiguous segments with a gap between them. Editing operations move data
-/// between the two segments and write data into the gap. If the gap is filled by new data, a new
-/// one is allocated of half the total size of the buffer.
-///
-/// A slice of a gap buffer can be either contiguous or fragmented. A contiguous slice is entirely
-/// either side of the gap, while a fragmented slice is divided by it.
-///
-/// The gap buffer offers a single operation, splice, which both deletes and inserts data. These
-/// operations are performed by moving, expanding, and shrinking the gap.
-///
-/// # Examples
-///
-/// ```
-/// use viola::gap::buffer::{GapBuffer, GapSlice};
-///
-/// let mut buf = GapBuffer::new();
-///
-/// buf.splice(.., &[1, 2, 3, 4, 5]);
-/// assert_eq!(GapSlice::Contiguous(&[1, 2, 3, 4, 5]), buf.slice(..));
-///
-/// buf.splice(1..3, &[]);
-/// assert_eq!(GapSlice::Fragmented(&[1], &[4, 5]), buf.slice(..));
-///
-/// buf.splice(..2, &[8, 7, 6]);
-/// assert_eq!(GapSlice::Fragmented(&[8, 7, 6], &[5]), buf.slice(..));
-/// ```
-pub struct GapBuffer {
-    buf: Vec<u8>,
-    gap: Range<usize>,
+pub struct Buffer {
+    pub(super) buf: Vec<u8>,
+    pub(super) gap: Range<usize>,
 }
 
-/// Slice of a gap buffer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GapSlice<'a> {
-    /// Contiguous slice, i.e. entirely either side of the gap.
-    Contiguous(&'a [u8]),
-
-    /// Fragmented slice, i.e. separated by the gap.
-    Fragmented(&'a [u8], &'a [u8]),
-}
-
-impl GapBuffer {
-    /// Creates an empty gap buffer without allocating.
+impl Buffer {
+    /// Creates an empty buffer without allocating.
     ///
     /// A gap will be allocated when data is inserted.
     pub fn new() -> Self {
-        GapBuffer {
+        Buffer {
             buf: Vec::new(),
             gap: 0..0,
         }
     }
 
-    /// Creates a gap buffer with a pre-allocated gap.
-    pub fn with_gap(len: usize) -> Self {
-        let mut buffer = GapBuffer::new();
-        buffer.resize_buf(len);
-        buffer.gap = 0..len;
+    /// Creates a buffer with a pre-allocated gap.
+    pub fn with_gap(gap: usize) -> Self {
+        let mut buffer = Buffer::new();
+        buffer.resize_buf(gap);
+        buffer.gap = 0..gap;
         buffer
     }
 
@@ -75,25 +34,20 @@ impl GapBuffer {
         self.buf.len() - self.gap.len()
     }
 
-    /// Returns a slice of the buffer.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the starting point is greater than the end point, or if either point is out of
-    /// bounds.
-    pub fn slice<R: IntoRange>(&self, range: R) -> GapSlice {
-        let range = range.into_range(self.len());
-
-        if range.start < self.gap.start && range.end <= self.gap.start {
-            GapSlice::Contiguous(&self.buf[range])
-        } else if range.start >= self.gap.start {
-            GapSlice::Contiguous(&self.buf[range.add(self.gap.len())])
+    /// Returns a slice containing the entire buffer.
+    pub fn as_slice(&self) -> Slice {
+        if self.gap.start == 0 {
+            Slice::Contiguous(&self.buf[self.gap.end..])
+        } else if self.gap.end == self.buf.len() {
+            Slice::Contiguous(&self.buf[..self.gap.start])
         } else {
-            GapSlice::Fragmented(
-                &self.buf[range.with_end(self.gap.start)],
-                &self.buf[range.add(self.gap.len()).with_start(self.gap.end)],
-            )
+            Slice::Fragmented(&self.buf[..self.gap.start], &self.buf[self.gap.end..])
         }
+    }
+
+    /// Returns a slice of the buffer.
+    pub fn slice<R: IntoRange>(&self, range: R) -> Slice {
+        self.as_slice().slice(range)
     }
 
     /// Replaces a slice of bytes. Destination and source can be different lengths.
@@ -126,29 +80,33 @@ impl GapBuffer {
         dest.with_len(src.len())
     }
 
+    // Reallocates the buffer and makes all bytes available.
     fn resize_buf(&mut self, additional: usize) {
         let new_len = self.buf.len() + additional;
         self.buf.reserve_exact(additional);
         unsafe { self.buf.set_len(new_len); }
     }
 
+    // Returns a pointer to the start of the gap.
     fn gap_start(&self) -> *const u8 {
         unsafe { self.buf.as_ptr().offset(self.gap.start as isize) }
     }
 
+    // Returns a pointer to the end of the gap.
     fn gap_end(&self) -> *const u8 {
         unsafe { self.buf.as_ptr().offset(self.gap.end as isize) }
     }
 
-    fn move_gap_up(&mut self, index: usize) {
+    // Moves the gap up (higher index).
+    pub(super) fn move_gap_up(&mut self, index: usize) {
         let move_len = index - self.gap.start;
         unsafe {
             ptr::copy(self.gap_end(), self.gap_start() as *mut u8, move_len);
         }
-        self.gap.start += move_len;
-        self.gap.end += move_len;
+        self.gap = self.gap.add(move_len);
     }
 
+    // Moves the gap down (lower index).
     fn move_gap_down(&mut self, index: usize) {
         let move_len = self.gap.start - index;
         unsafe {
@@ -158,19 +116,18 @@ impl GapBuffer {
                 move_len,
             );
         }
-        self.gap.start -= move_len;
-        self.gap.end -= move_len;
+        self.gap = self.gap.sub(move_len);
     }
 
+    // Reallocate with enough capacity for `fit` and a new gap.
     fn resize_to_fit(&mut self, fit: usize) {
-        // Allocate enough for `fit` and new gap.
         let old_len = self.buf.len();
         let gap_len = (self.len() + fit) / 2;
         let additional = fit - self.gap.len() + gap_len;
         self.resize_buf(additional);
 
-        // Move data after gap to the end of the buffer. This is a bit inefficient since the Vec
-        // has already copied this data once.
+        // Move data after the gap to the end of the buffer. This is a bit inefficient since the
+        // Vec has already copied this data once.
         unsafe {
             ptr::copy(
                 self.gap_end(),
@@ -182,111 +139,10 @@ impl GapBuffer {
         self.gap.end += additional;
     }
 
+    // Copies data into the gap.
     fn copy_into_gap(&mut self, src: &[u8]) {
         let dest = &mut self.buf[self.gap.with_len(src.len())];
         dest.copy_from_slice(src);
         self.gap.start += src.len();
-    }
-}
-
-/// Uses the extra capacity as the gap.
-impl From<Vec<u8>> for GapBuffer {
-    fn from(mut buf: Vec<u8>) -> Self {
-        let len = buf.len();
-        let cap = buf.capacity();
-        unsafe { buf.set_len(cap); }
-        GapBuffer {
-            buf: buf,
-            gap: len..cap,
-        }
-    }
-}
-
-/// Moves the gap to the end as extra capacity.
-impl Into<Vec<u8>> for GapBuffer {
-    fn into(mut self) -> Vec<u8> {
-        let len = self.len();
-        self.move_gap_up(len);
-        let mut buf = self.buf;
-        unsafe { buf.set_len(len); }
-        buf
-    }
-}
-
-impl<'a> From<&'a [u8]> for GapBuffer {
-    fn from(slice: &'a [u8]) -> Self {
-        let mut buffer = GapBuffer::new();
-        buffer.splice(.., slice);
-        buffer
-    }
-}
-
-impl<'a> GapSlice<'a> {
-    /// Copies the slice into a new `Vec<u8>`.
-    pub fn to_vec(&self) -> Vec<u8> {
-        match *self {
-            GapSlice::Contiguous(back) => back.to_vec(),
-            GapSlice::Fragmented(front, back) => {
-                let mut vec = front.to_vec();
-                vec.extend(back);
-                vec
-            },
-        }
-    }
-}
-
-impl<'a> IntoIterator for GapSlice<'a> {
-    type Item = &'a u8;
-    type IntoIter = GapIter<Iter<'a, u8>>;
-
-    fn into_iter(self) -> GapIter<Iter<'a, u8>> {
-        match self {
-            GapSlice::Contiguous(back) => GapIter {
-                front: None,
-                back: back.into_iter(),
-                state: IterState::Back,
-            },
-            GapSlice::Fragmented(front, back) => GapIter {
-                front: Some(front.into_iter()),
-                back: back.into_iter(),
-                state: IterState::Both,
-            },
-        }
-    }
-}
-
-// Used by the GapString Debug implementation.
-impl GapBuffer {
-    pub(super) fn gap_len(&self) -> usize {
-        self.gap.len()
-    }
-
-    pub(super) fn gap_start_zero(&self) -> bool {
-        self.gap.start == 0
-    }
-}
-
-struct Gap(usize);
-
-impl Debug for Gap {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        write!(f, "[..{}..]", self.0)
-    }
-}
-
-impl Debug for GapBuffer {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let gap = Gap(self.gap.len());
-        match self.slice(..) {
-            GapSlice::Contiguous(back) if self.gap.start == 0 => {
-                f.debug_list().entry(&gap).entries(back).finish()
-            },
-            GapSlice::Contiguous(front) => {
-                f.debug_list().entries(front).entry(&gap).finish()
-            },
-            GapSlice::Fragmented(front, back) => {
-                f.debug_list().entries(front).entry(&gap).entries(back).finish()
-            },
-        }
     }
 }
