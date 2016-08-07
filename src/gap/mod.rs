@@ -23,7 +23,7 @@ mod str;
 mod string;
 
 pub use self::buffer::Buffer;
-pub use self::iter::Iter;
+pub use self::iter::{CharIndices, Iter};
 pub use self::slice::Slice;
 pub use self::str::Str;
 pub use self::string::String;
