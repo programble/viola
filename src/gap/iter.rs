@@ -1,5 +1,5 @@
 use std::slice::Iter as SliceIter;
-use std::str::Chars;
+use std::str::{Chars, CharIndices as StrCharIndices};
 
 use super::{Slice, Str};
 
@@ -96,6 +96,78 @@ impl<'a> Str<'a> {
                 back: back.chars(),
                 state: State::Both,
             },
+        }
+    }
+
+    /// Returns an iterator over the chars of a slice, and their positions.
+    pub fn char_indices(&self) -> CharIndices<'a> {
+        match *self {
+            Str::Contiguous(back) => CharIndices {
+                front_len: 0,
+                front: None,
+                back: back.char_indices(),
+                state: State::Back,
+            },
+            Str::Fragmented(front, back) => CharIndices {
+                front_len: front.len(),
+                front: Some(front.char_indices()),
+                back: back.char_indices(),
+                state: State::Both,
+            },
+        }
+    }
+}
+
+/// Iterator for a gap buffer string's characters and their byte offsets.
+#[derive(Debug, Clone)]
+pub struct CharIndices<'a> {
+    front_len: usize,
+    front: Option<StrCharIndices<'a>>,
+    back: StrCharIndices<'a>,
+    state: State,
+}
+
+impl<'a> CharIndices<'a> {
+    fn front(&mut self) -> &mut StrCharIndices<'a> {
+        self.front.as_mut().expect("missing front iterator")
+    }
+
+    fn map_back(&self, item: (usize, char)) -> (usize, char) {
+        let (index, ch) = item;
+        (index + self.front_len, ch)
+    }
+}
+
+impl<'a> Iterator for CharIndices<'a> {
+    type Item = (usize, char);
+
+    fn next(&mut self) -> Option<(usize, char)> {
+        match self.state {
+            State::Both => match self.front().next() {
+                elt @ Some(..) => elt,
+                None => {
+                    self.state = State::Back;
+                    self.back.next().map(|x| self.map_back(x))
+                },
+            },
+            State::Front => self.front().next(),
+            State::Back => self.back.next().map(|x| self.map_back(x)),
+        }
+    }
+}
+
+impl<'a> DoubleEndedIterator for CharIndices<'a> {
+    fn next_back(&mut self) -> Option<(usize, char)> {
+        match self.state {
+            State::Both => match self.back.next_back() {
+                Some(item) => Some(self.map_back(item)),
+                None => {
+                    self.state = State::Front;
+                    self.front().next_back()
+                },
+            },
+            State::Front => self.front().next_back(),
+            State::Back => self.back.next_back().map(|x| self.map_back(x)),
         }
     }
 }
