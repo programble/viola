@@ -20,19 +20,25 @@ enum State {
     Back,
 }
 
+impl<I: Iterator> Iter<I> {
+    fn front(&mut self) -> &mut I {
+        self.front.as_mut().expect("missing front iterator")
+    }
+}
+
 impl<I: Iterator> Iterator for Iter<I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<I::Item> {
         match self.state {
-            State::Both => match self.front.as_mut().unwrap().next() {
+            State::Both => match self.front().next() {
                 elt @ Some(..) => elt,
                 None => {
                     self.state = State::Back;
                     self.back.next()
                 },
             },
-            State::Front => self.front.as_mut().unwrap().next(),
+            State::Front => self.front().next(),
             State::Back => self.back.next(),
         }
     }
@@ -47,10 +53,10 @@ impl<I: DoubleEndedIterator> DoubleEndedIterator for Iter<I> {
                 elt @ Some(..) => elt,
                 None => {
                     self.state = State::Front;
-                    self.front.as_mut().unwrap().next_back()
+                    self.front().next_back()
                 },
             },
-            State::Front => self.front.as_mut().unwrap().next_back(),
+            State::Front => self.front().next_back(),
             State::Back => self.back.next_back(),
         }
     }
