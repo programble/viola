@@ -14,19 +14,49 @@ fn from_slice_into_vec(vec: Vec<u8>) -> bool {
 }
 
 #[quickcheck]
-fn empty_splice(src: Vec<u8>) -> bool {
-    let mut vec = Vec::new();
-    let mut buf = Buffer::new();
+fn slice(vec: Vec<u8>, range: SliceRange) -> TestResult {
+    if range.0.end > vec.len() {
+        return TestResult::discard()
+    }
 
-    Splice::splice(&mut vec, SliceRange(0..0), &src);
-    Splice::splice(&mut buf, SliceRange(0..0), &src);
+    let buf = Buffer::from(vec.clone());
 
-    vec == buf.into(): Vec<u8>
+    let vec_slice = &vec[range.0.clone()];
+    let buf_slice = buf.slice(range.0);
+
+    TestResult::from_bool(vec_slice.to_vec() == buf_slice.into(): Vec<u8>)
+}
+
+#[quickcheck]
+fn slice_slice(vec: Vec<u8>, range_a: SliceRange, range_b: SliceRange) -> TestResult {
+    if range_a.0.end > vec.len() || range_b.0.end > range_a.0.len() {
+        return TestResult::discard()
+    }
+
+    let buf = Buffer::from(vec.clone());
+
+    let vec_slice = &vec[range_a.0.clone()][range_b.0.clone()];
+    let buf_slice = buf.slice(range_a.0).slice(range_b.0);
+
+    TestResult::from_bool(vec_slice.to_vec() == buf_slice.into(): Vec<u8>)
+}
+
+#[quickcheck]
+fn slice_iter(vec: Vec<u8>, range: SliceRange) -> TestResult {
+    if range.0.end > vec.len() {
+        return TestResult::discard();
+    }
+
+    let buf = Buffer::from(vec.clone());
+    let vec_iter = vec[range.0.clone()].iter();
+    let buf_iter = buf.slice(range.0).into_iter();
+
+    TestResult::from_bool(vec_iter.eq(buf_iter))
 }
 
 #[quickcheck]
 fn splice(init: Vec<u8>, dest: SliceRange, src: Vec<u8>) -> TestResult {
-    if dest.0.start > init.len() || dest.0.end > init.len() {
+    if dest.0.end > init.len() {
         return TestResult::discard();
     }
 
@@ -45,7 +75,7 @@ fn splice_seq(init: Vec<u8>, splices: Vec<(SliceRange, Vec<u8>)>) -> TestResult 
     let mut buf = Buffer::from(init);
 
     for (dest, src) in splices {
-        if dest.0.start > vec.len() || dest.0.end > vec.len() {
+        if dest.0.end > vec.len() {
             return TestResult::discard();
         }
 
@@ -58,7 +88,7 @@ fn splice_seq(init: Vec<u8>, splices: Vec<(SliceRange, Vec<u8>)>) -> TestResult 
 
 #[quickcheck]
 fn splice_slice(init: Vec<u8>, dest: SliceRange, src: Vec<u8>, slice: SliceRange) -> TestResult {
-    if dest.0.start > init.len() || dest.0.end > init.len() {
+    if dest.0.end > init.len() {
         return TestResult::discard();
     }
 
@@ -68,9 +98,12 @@ fn splice_slice(init: Vec<u8>, dest: SliceRange, src: Vec<u8>, slice: SliceRange
     Splice::splice(&mut vec, dest.clone(), &src);
     Splice::splice(&mut buf, dest, &src);
 
-    if slice.0.start > vec.len() || slice.0.end > vec.len() {
+    if slice.0.end > vec.len() {
         return TestResult::discard();
     }
 
-    TestResult::from_bool(buf.slice(slice.0.clone()).into(): Vec<u8> == &vec[slice.0])
+    let vec_slice = &vec[slice.0.clone()];
+    let buf_slice = buf.slice(slice.0);
+
+    TestResult::from_bool(vec_slice.to_vec() == buf_slice.into(): Vec<u8>)
 }

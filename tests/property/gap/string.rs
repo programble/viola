@@ -6,24 +6,59 @@ use viola::gap::String;
 use super::{SliceRange, Splice};
 
 #[quickcheck]
-fn from_string_into_string(string: StdString) -> bool {
-    string == String::from(string.clone()).into(): StdString
+fn from_std_into_std(std: StdString) -> bool {
+    std == String::from(std.clone()).into(): StdString
 }
 
 #[quickcheck]
-fn from_str_into_string(string: StdString) -> bool {
-    string == String::from(string.as_str()).into(): StdString
+fn from_str_into_std(std: StdString) -> bool {
+    std == String::from(std.as_str()).into(): StdString
 }
 
 #[quickcheck]
-fn empty_splice(src: StdString) -> bool {
-    let mut string = StdString::new();
-    let mut buffer = String::new();
+fn slice(std: StdString, range: SliceRange) -> TestResult {
+    if !std.is_char_boundary(range.0.start) || !std.is_char_boundary(range.0.end) {
+        return TestResult::discard();
+    }
 
-    Splice::splice(&mut string, SliceRange(0..0), &src);
-    Splice::splice(&mut buffer, SliceRange(0..0), &src);
+    let buf = String::from(std.clone());
 
-    string == buffer.into(): StdString
+    let std_slice = &std[range.0.clone()];
+    let buf_slice = buf.slice(range.0);
+
+    TestResult::from_bool(std_slice.to_string() == buf_slice.to_string())
+}
+
+#[quickcheck]
+fn slice_slice(std: StdString, range_a: SliceRange, range_b: SliceRange) -> TestResult {
+    let discard = !std.is_char_boundary(range_a.0.start)
+        || !std.is_char_boundary(range_a.0.end)
+        || !std[range_a.0.clone()].is_char_boundary(range_b.0.start)
+        || !std[range_a.0.clone()].is_char_boundary(range_b.0.end);
+    if discard {
+        return TestResult::discard();
+    }
+
+    let buf = String::from(std.clone());
+
+    let std_slice = &std[range_a.0.clone()][range_b.0.clone()];
+    let buf_slice = buf.slice(range_a.0).slice(range_b.0);
+
+    TestResult::from_bool(std_slice.to_string() == buf_slice.to_string())
+}
+
+#[quickcheck]
+fn slice_chars(std: StdString, range: SliceRange) -> TestResult {
+    if !std.is_char_boundary(range.0.start) || !std.is_char_boundary(range.0.end) {
+        return TestResult::discard();
+    }
+
+    let buf = String::from(std.clone());
+
+    let std_chars = std[range.0.clone()].chars();
+    let buf_chars = buf.slice(range.0).chars();
+
+    TestResult::from_bool(std_chars.eq(buf_chars))
 }
 
 #[quickcheck]
@@ -32,47 +67,55 @@ fn splice(init: StdString, dest: SliceRange, src: StdString) -> TestResult {
         return TestResult::discard();
     }
 
-    let mut string = init.clone();
-    let mut buffer = String::from(init);
+    let mut std = init.clone();
+    let mut buf = String::from(init);
 
-    Splice::splice(&mut string, dest.clone(), &src);
-    Splice::splice(&mut buffer, dest, &src);
+    Splice::splice(&mut std, dest.clone(), &src);
+    Splice::splice(&mut buf, dest, &src);
 
-    TestResult::from_bool(string == buffer.into(): StdString)
+    TestResult::from_bool(std == buf.into(): StdString)
 }
 
 #[quickcheck]
 fn splice_seq(init: StdString, splices: Vec<(SliceRange, StdString)>) -> TestResult {
-    let mut string = init.clone();
-    let mut buffer = String::from(init);
+    let mut std = init.clone();
+    let mut buf = String::from(init);
 
     for (dest, src) in splices {
-        if !string.is_char_boundary(dest.0.start) || !string.is_char_boundary(dest.0.end) {
+        if !std.is_char_boundary(dest.0.start) || !std.is_char_boundary(dest.0.end) {
             return TestResult::discard();
         }
 
-        Splice::splice(&mut string, dest.clone(), &src);
-        Splice::splice(&mut buffer, dest, &src);
+        Splice::splice(&mut std, dest.clone(), &src);
+        Splice::splice(&mut buf, dest, &src);
     }
 
-    TestResult::from_bool(string == buffer.into(): StdString)
+    TestResult::from_bool(std == buf.into(): StdString)
 }
 
 #[quickcheck]
-fn splice_slice(init: StdString, dest: SliceRange, src: StdString, slice: SliceRange) -> TestResult {
+fn splice_slice(
+    init: StdString,
+    dest: SliceRange,
+    src: StdString,
+    slice: SliceRange
+) -> TestResult {
     if !init.is_char_boundary(dest.0.start) || !init.is_char_boundary(dest.0.end) {
         return TestResult::discard();
     }
 
-    let mut string = init.clone();
-    let mut buffer = String::from(init);
+    let mut std = init.clone();
+    let mut buf = String::from(init);
 
-    Splice::splice(&mut string, dest.clone(), &src);
-    Splice::splice(&mut buffer, dest, &src);
+    Splice::splice(&mut std, dest.clone(), &src);
+    Splice::splice(&mut buf, dest, &src);
 
-    if !string.is_char_boundary(slice.0.start) || !string.is_char_boundary(slice.0.end) {
+    if !std.is_char_boundary(slice.0.start) || !std.is_char_boundary(slice.0.end) {
         return TestResult::discard();
     }
 
-    TestResult::from_bool(buffer.slice(slice.0.clone()).to_string() == &string[slice.0])
+    let std_slice = &std[slice.0.clone()];
+    let buf_slice = buf.slice(slice.0);
+
+    TestResult::from_bool(std_slice.to_string() == buf_slice.to_string())
 }
