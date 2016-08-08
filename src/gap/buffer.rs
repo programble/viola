@@ -23,7 +23,7 @@ impl Buffer {
 
     /// Creates a buffer with a pre-allocated gap.
     pub fn with_gap(gap: usize) -> Self {
-        let mut buffer = Buffer::new();
+        let mut buffer = Self::new();
         buffer.resize_buf(gap);
         buffer.gap = 0..gap;
         buffer
@@ -32,6 +32,11 @@ impl Buffer {
     /// Returns the length of the buffer, excluding the gap.
     pub fn len(&self) -> usize {
         self.buf.len() - self.gap.len()
+    }
+
+    /// Returns `true` if the buffer contains no data.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Returns a slice containing the entire buffer.
@@ -144,5 +149,11 @@ impl Buffer {
         let dest = &mut self.buf[self.gap.with_len(src.len())];
         dest.copy_from_slice(src);
         self.gap.start += src.len();
+    }
+}
+
+impl Default for Buffer {
+    fn default() -> Self {
+        Self::new()
     }
 }

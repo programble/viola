@@ -19,6 +19,14 @@ impl<'a> Slice<'a> {
         }
     }
 
+    /// Returns `true` if the slice contains no data.
+    pub fn is_empty(&self) -> bool {
+        match *self {
+            Slice::Contiguous(back) => back.is_empty(),
+            Slice::Fragmented(..) => false,
+        }
+    }
+
     /// Returns a sub-slice of the slice.
     ///
     /// # Panics

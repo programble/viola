@@ -39,7 +39,7 @@ impl<'a> Into<Vec<u8>> for Slice<'a> {
             Slice::Contiguous(back) => back.to_vec(),
             Slice::Fragmented(front, back) => {
                 let mut vec = front.to_vec();
-                vec.extend(back);
+                vec.extend_from_slice(back);
                 vec
             },
         }

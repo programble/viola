@@ -5,6 +5,7 @@ use range::IntoRange;
 use super::{Buffer, Slice, Str};
 
 /// Gap buffer UTF-8 string.
+#[derive(Default)]
 pub struct String {
     pub(super) buf: Buffer,
 }
@@ -23,6 +24,11 @@ impl String {
     /// Returns the length of the string, excluding the gap.
     pub fn len(&self) -> usize {
         self.buf.len()
+    }
+
+    /// Returns `true` if the string contains no data.
+    pub fn is_empty(&self) -> bool {
+        self.buf.is_empty()
     }
 
     /// Returns a string slice containing the entire string.

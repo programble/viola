@@ -22,6 +22,14 @@ impl<'a> Str<'a> {
         }
     }
 
+    /// Returns `true` if the slice contains no data.
+    pub fn is_empty(&self) -> bool {
+        match *self {
+            Str::Contiguous(back) => back.is_empty(),
+            Str::Fragmented(..) => false,
+        }
+    }
+
     /// Converts a string slice to a byte slice.
     pub fn as_bytes(&self) -> Slice<'a> {
         match *self {
