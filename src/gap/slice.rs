@@ -1,3 +1,5 @@
+use std::cmp::PartialEq;
+
 use range::{IntoRange, RangeExt};
 
 /// Slice of a gap buffer.
@@ -48,6 +50,24 @@ impl<'a> Slice<'a> {
                     &front[range.with_end(front.len())],
                     &back[..(range.end - front.len())],
                 )
+            },
+        }
+    }
+}
+
+impl<'a, 'b> PartialEq<&'b [u8]> for Slice<'a> {
+    fn eq(&self, other: &&[u8]) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+
+        match *self {
+            Slice::Contiguous(back) => {
+                back == *other
+            },
+            Slice::Fragmented(front, back) => {
+                front == &other[..front.len()]
+                    && back == &other[front.len()..]
             },
         }
     }

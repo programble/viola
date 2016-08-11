@@ -25,7 +25,7 @@ fn slice(vec: Vec<u8>, range: SliceRange) -> TestResult {
     let vec_slice = &vec[range.into_range(0)];
     let buf_slice = buf.slice(range);
 
-    TestResult::from_bool(vec_slice.to_vec() == buf_slice.into(): Vec<u8>)
+    TestResult::from_bool(buf_slice == vec_slice)
 }
 
 #[quickcheck]
@@ -42,7 +42,7 @@ fn slice_slice(vec: Vec<u8>, first: SliceRange, second: SliceRange) -> TestResul
     let vec_second = &vec_first[second.into_range(0)];
     let buf_second = buf_first.slice(second);
 
-    TestResult::from_bool(vec_second.to_vec() == buf_second.into(): Vec<u8>)
+    TestResult::from_bool(buf_second == vec_second)
 }
 
 #[quickcheck]
@@ -100,5 +100,5 @@ fn splice_slice(init: Vec<u8>, dest: SliceRange, src: Vec<u8>, slice: SliceRange
     let vec_slice = &vec[slice.into_range(0)];
     let buf_slice = buf.slice(slice);
 
-    TestResult::from_bool(vec_slice.to_vec() == buf_slice.into(): Vec<u8>)
+    TestResult::from_bool(buf_slice == vec_slice)
 }
