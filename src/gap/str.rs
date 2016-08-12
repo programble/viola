@@ -4,7 +4,7 @@ use range::IntoRange;
 use super::Slice;
 
 /// Slice of a gap buffer string.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub enum Str<'a> {
     /// Contiguous slice, i.e. entirely either side of the gap.
     Contiguous(&'a str),

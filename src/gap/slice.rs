@@ -3,7 +3,7 @@ use std::cmp::PartialEq;
 use range::{IntoRange, RangeExt};
 
 /// Slice of a gap buffer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub enum Slice<'a> {
     /// Contiguous slice, i.e. entirely either side of the gap.
     Contiguous(&'a [u8]),
