@@ -60,6 +60,18 @@ fn slice_chars(std: StdString, range: SliceRange) -> TestResult {
 }
 
 #[quickcheck]
+fn slice_char_indices(std: StdString, range: SliceRange) -> TestResult {
+    if !range.valid_str(&std) { return TestResult::discard(); }
+
+    let buf = String::from(std.as_str());
+
+    let std_char_indices = std[range.into_range(0)].char_indices();
+    let buf_char_indices = buf.slice(range).char_indices();
+
+    TestResult::from_bool(std_char_indices.eq(buf_char_indices))
+}
+
+#[quickcheck]
 fn splice(init: StdString, dest: SliceRange, src: StdString) -> TestResult {
     if !dest.valid_str(&init) { return TestResult::discard(); }
 
