@@ -15,6 +15,7 @@
 //! TODO
 
 mod buffer;
+mod cmp;
 mod convert;
 mod fmt;
 mod iter;
