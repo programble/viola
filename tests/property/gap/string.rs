@@ -27,7 +27,7 @@ fn slice(std: StdString, range: SliceRange) -> TestResult {
     let std_slice = &std[range.into_range(0)];
     let buf_slice = buf.slice(range);
 
-    TestResult::from_bool(std_slice.to_string() == buf_slice.to_string())
+    TestResult::from_bool(buf_slice == std_slice)
 }
 
 #[quickcheck]
@@ -44,7 +44,7 @@ fn slice_slice(std: StdString, first: SliceRange, second: SliceRange) -> TestRes
     let std_second = &std_first[second.into_range(0)];
     let buf_second = buf_first.slice(second);
 
-    TestResult::from_bool(std_second.to_string() == buf_second.to_string())
+    TestResult::from_bool(buf_second == std_second)
 }
 
 #[quickcheck]
@@ -107,5 +107,5 @@ fn splice_slice(
     let std_slice = &std[slice.into_range(0)];
     let buf_slice = buf.slice(slice);
 
-    TestResult::from_bool(std_slice.to_string() == buf_slice.to_string())
+    TestResult::from_bool(buf_slice == std_slice)
 }

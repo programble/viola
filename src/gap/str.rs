@@ -1,3 +1,4 @@
+use std::cmp::PartialEq;
 use std::str;
 
 use range::IntoRange;
@@ -67,6 +68,24 @@ impl<'a> Str<'a> {
             Str::Contiguous(back) => back.is_char_boundary(index),
             Str::Fragmented(front, _) if index < front.len() => front.is_char_boundary(index),
             Str::Fragmented(front, back) => back.is_char_boundary(index - front.len()),
+        }
+    }
+}
+
+impl<'a, 'b> PartialEq<&'b str> for Str<'a> {
+    fn eq(&self, other: &&str) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+
+        match *self {
+            Str::Contiguous(back) => {
+                back == *other
+            },
+            Str::Fragmented(front, back) => {
+                front == &other[..front.len()]
+                    && back == &other[front.len()..]
+            },
         }
     }
 }
