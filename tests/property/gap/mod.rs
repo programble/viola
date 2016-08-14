@@ -1,4 +1,5 @@
 mod buffer;
+mod string;
 
 use std::ops::{Index, Range};
 use std::string::String as StdString;
