@@ -1,7 +1,6 @@
 mod buffer;
-mod string;
 
-use std::ops::Range;
+use std::ops::{Index, Range};
 use std::string::String as StdString;
 
 use quickcheck::{Arbitrary, Gen};
@@ -32,6 +31,38 @@ impl IntoRange for SliceRange {
     }
 }
 
+impl Index<SliceRange> for Vec<u8> {
+    type Output = [u8];
+
+    fn index(&self, index: SliceRange) -> &[u8] {
+        &self[index.start..index.end]
+    }
+}
+
+impl Index<SliceRange> for [u8] {
+    type Output = [u8];
+
+    fn index(&self, index: SliceRange) -> &[u8] {
+        &self[index.start..index.end]
+    }
+}
+
+impl Index<SliceRange> for StdString {
+    type Output = str;
+
+    fn index(&self, index: SliceRange) -> &str {
+        &self[index.start..index.end]
+    }
+}
+
+impl Index<SliceRange> for str {
+    type Output = str;
+
+    fn index(&self, index: SliceRange) -> &str {
+        &self[index.start..index.end]
+    }
+}
+
 impl Arbitrary for SliceRange {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let start = usize::arbitrary(g);
@@ -53,7 +84,6 @@ impl Arbitrary for SliceRange {
     }
 }
 
-// Trait for dispatching to gap buffer splice and naive `Vec` / `StdString` implementations.
 trait Splice<S: ?Sized> {
     fn splice(&mut self, dest: SliceRange, src: &S);
 }
@@ -64,26 +94,26 @@ impl Splice<[u8]> for Buffer {
     }
 }
 
-impl Splice<[u8]> for Vec<u8> {
-    fn splice(&mut self, dest: SliceRange, src: &[u8]) {
-        self.drain(dest.into_range(0));
-
-        // Inefficient, but works.
-        for &byte in src.iter().rev() {
-            self.insert(dest.start, byte);
-        }
-    }
-}
-
 impl Splice<str> for String {
     fn splice(&mut self, dest: SliceRange, src: &str) {
         self.splice(dest, src);
     }
 }
 
+impl Splice<[u8]> for Vec<u8> {
+    fn splice(&mut self, dest: SliceRange, src: &[u8]) {
+        self.drain(dest.start..dest.end);
+
+        // Inefficient, but works. Where is insert_slice?
+        for &byte in src.iter().rev() {
+            self.insert(dest.start, byte);
+        }
+    }
+}
+
 impl Splice<str> for StdString {
     fn splice(&mut self, dest: SliceRange, src: &str) {
-        self.drain(dest.into_range(0));
+        self.drain(dest.start..dest.end);
         self.insert_str(dest.start, src);
     }
 }
