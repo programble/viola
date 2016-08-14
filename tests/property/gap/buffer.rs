@@ -49,8 +49,8 @@ fn slice_slice(init: Vec<u8>, one: SliceRange, two: SliceRange) -> TestResult {
 
     let vec_one = &init[one];
     let buf_one = buf.slice(one);
-    discard!(two, vec_one);
 
+    discard!(two, vec_one);
     TestResult::from_bool(buf_one.slice(two) == vec_one[two])
 }
 
@@ -94,7 +94,6 @@ fn splice_splice(
     Splice::splice(&mut buf, one.0, &one.1);
 
     discard!(two.0, &vec);
-
     Splice::splice(&mut vec, two.0, &two.1);
     Splice::splice(&mut buf, two.0, &two.1);
 
