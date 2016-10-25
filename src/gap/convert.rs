@@ -1,6 +1,6 @@
 use std::string::String as StdString;
 
-use super::{Buffer, Slice, String};
+use super::{Buffer, Slice, Str, String};
 
 /// Uses the extra capacity as the gap.
 impl From<Vec<u8>> for Buffer {
@@ -65,5 +65,18 @@ impl<'a> From<&'a str> for String {
         let mut string = String::new();
         string.splice(.., slice);
         string
+    }
+}
+
+impl<'a> Into<StdString> for Str<'a> {
+    fn into(self) -> StdString {
+        match self {
+            Str::Contiguous(back) => back.to_owned(),
+            Str::Fragmented(front, back) => {
+                let mut string = front.to_owned();
+                string.push_str(back);
+                string
+            },
+        }
     }
 }
