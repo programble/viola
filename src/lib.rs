@@ -18,4 +18,5 @@
 )]
 
 pub mod gap;
+pub mod operation;
 pub mod range;
